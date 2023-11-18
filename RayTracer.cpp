@@ -3,8 +3,11 @@
 #include <iostream>
 #include <fstream>
 
-#include "ImportParser.cpp"
+//#include "ImportParser.cpp"
 #include "RayStructures.h"
+//#include "Sphere.h"
+#include "ImageWriter.h"
+#include "Scene.h"
 
 
 class RayTracer {
@@ -13,7 +16,7 @@ public:
         // Initialize rendering parameters and scene.
     }
 
-    Vec3** RayTracer::RenderScene(const Scene& scene) {
+    Vec3** RenderScene(Scene& scene) {
         // Get the Camera object from the Scene object
         Camera camera = scene.getCamera();
 
@@ -98,11 +101,60 @@ int main() {
 
     //parseJson("imports/binary_primitives.json");
 
+    Scene basicScene = Scene();
 
+    basicScene.setCamera(Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1));
+    basicScene.setBackgroundColor(Vec3(0.25, 0.25, 0.25));
+    //basicScene.addShape(Sphere(Vec3(-0.3, 0.19, 1), 0.2, Material()));
+    
+    Vec3** image = renderer.RenderScene(basicScene);
 
+    ImageWriter::writePPM("output.ppm", image, 1200, 800);
+    
 
     //renderer.RenderScene(/* rendering options */);
     //renderer.SavePPMImage("output.ppm");
 
     return 0;
 }
+
+
+/*
+{
+    "rendermode":"binary",
+    "camera":
+        { 
+            "type":"pinhole", 
+            "width":1200, 
+            "height":800,
+            "position":[0.0, 0, 0],
+            "lookAt":[0.0, 0, 1.0],
+            "upVector":[0.0, 1.0, 0.0],
+            "fov":45.0,
+            "exposure":0.1
+        },
+    "scene":
+        { 
+            "backgroundcolor": [0.25, 0.25, 0.25], 
+            "shapes":[ 
+                { 
+                    "type":"sphere", 
+                    "center": [-0.3, 0.19, 1],
+                    "radius":0.2
+                },
+                {
+                    "type": "cylinder",
+                    "center": [-0.3, -0.2, 1],
+                    "axis": [1, 0, 0],
+                    "radius": 0.15,
+                    "height": 0.2
+                },
+                { 
+                    "type":"triangle", 
+                    "v0": [0, 0, 1],
+                    "v1": [0.5, 0, 1],
+                    "v2": [0.25,  0.25, 1]
+                }  
+            ] 
+        } 
+}*/

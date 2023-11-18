@@ -15,7 +15,7 @@ public:
     void setCamera(const Camera& camera);
     void setBackgroundColor(const Vec3& color);
     //void addLight(const Light& light);
-    void addShape(const Shape& shape);
+    void addShape(Shape* shape);
 
 
     int getNBounces() const;
@@ -33,7 +33,7 @@ private:
     Camera camera_;
     Vec3 backgroundcolor_;
     //std::vector<Light> lights_;
-    std::vector<Shape> shapes_;
+    std::vector<Shape*> shapes_;
 };
 
 #endif // SCENE_H

@@ -36,8 +36,8 @@ class Ray {
         Vec3 getOrigin() const {return origin_;}
         Vec3 getDirection() const {return direction_;}
 
-        Vec3 setOrigin(const Vec3& origin) {origin_ = origin;}
-        Vec3 setDirection(const Vec3& direction) {direction_ = direction;}
+        void setOrigin(const Vec3& origin) {origin_ = origin;}
+        void setDirection(const Vec3& direction) {direction_ = direction;}
 
         Vec3 pointAtParameter(float t) const {
             return origin_ + t * direction_;

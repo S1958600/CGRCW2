@@ -15,6 +15,8 @@ public:
     bool isrefractive;        // Indicates if the material is refractive
     float refractiveindex;    // Refractive index
 
+    Material();
+
     // Constructor
     Material(float ks, float kd, float specexp,
              const std::vector<float>& diffcolor,

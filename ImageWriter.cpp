@@ -1,7 +1,7 @@
 #include "ImageWriter.h"
 #include <fstream>
 
-bool ImageWriter::writePPM(const std::string& filename, const Vec3** pixels, int width, int height) {
+bool ImageWriter::writePPM(const std::string& filename, Vec3** pixels, int width, int height) {
     std::ofstream outputFile(filename);
     if (!outputFile.is_open()) {
         return false; // Failed to open file

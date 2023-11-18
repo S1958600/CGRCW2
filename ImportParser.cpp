@@ -19,6 +19,8 @@ Scene parseJSON(const std::string& filename) {
 
     // Parsing camera data
     json cameraData = jsonData["camera"];
+    int width = cameraData["width"];
+    int height = cameraData["height"];
     Vec3 position(cameraData["position"][0], cameraData["position"][1], cameraData["position"][2]);
     Vec3 lookAt(cameraData["lookAt"][0], cameraData["lookAt"][1], cameraData["lookAt"][2]);
     Vec3 upVector(cameraData["upVector"][0], cameraData["upVector"][1], cameraData["upVector"][2]);
@@ -26,7 +28,7 @@ Scene parseJSON(const std::string& filename) {
     float exposure = cameraData["exposure"];
 
     // Creating and setting the Camera object
-    Camera camera(position, lookAt, upVector, fov, exposure);
+    Camera camera(width, height, position, lookAt, upVector, fov, exposure);
     scene.setCamera(camera);
 
     // Parsing scene data

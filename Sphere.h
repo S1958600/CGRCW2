@@ -7,7 +7,7 @@
 class Sphere : public Shape {
 public:
     // Constructor
-    Sphere(const Vec3 center, float radius, const Material& material);
+    //Sphere(const Vec3 center, float radius, const Material& material);
 
     Sphere(const Vec3 &center, float radius, const Material &material);
 

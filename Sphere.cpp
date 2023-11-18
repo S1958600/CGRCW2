@@ -30,11 +30,11 @@ bool Sphere::intersect(const Ray& ray, Hit& hit) const {
         float t = (t1 > 0) ? t1 : t2;
 
         // Calculate intersection point and normal
-        Vec3 intersectionPoint = ray.at(t);
+        Vec3 intersectionPoint = ray.pointAtParameter(t);
         Vec3 outward_normal = (intersectionPoint - center_) / radius_;
 
         // Set Hit information
-        hit = Hit(true, t, outward_normal);
+        hit = Hit(true, t, intersectionPoint, outward_normal);
 
         return true;
     }

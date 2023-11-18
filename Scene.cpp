@@ -28,7 +28,7 @@ void Scene::addLight(const Light& light) {
 */
 
 
-void Scene::addShape(const Shape& shape) {
+void Scene::addShape(Shape* shape) {
     shapes_.push_back(shape);
 }
 
