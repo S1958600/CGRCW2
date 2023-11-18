@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 
+#include "ImportParser.cpp"
+#include "RayStructures.h"
+
 
 class RayTracer {
 public:
@@ -10,8 +13,29 @@ public:
         // Initialize rendering parameters and scene.
     }
 
-    void RenderScene(/* rendering options */) {
-        // Rendering logic: generate pixel colors, shading, etc.
+    Vec3** RayTracer::RenderScene(const Scene& scene) {
+        // Get the Camera object from the Scene object
+        Camera camera = scene.getCamera();
+
+        // Generate a 2D list of Ray objects
+        Ray** rays = camera.generateAllRays(camera.getWidth(), camera.getHeight());
+
+        // Create a 2D list of Color objects to store the color of each pixel
+        Vec3** image = new Vec3*[camera.getHeight()];
+        for (int i = 0; i < camera.getHeight(); ++i) {
+            image[i] = new Vec3[camera.getWidth()];
+        }
+
+        // Calculate the color of each pixel
+        for (int y = 0; y < camera.getHeight(); ++y) {
+            for (int x = 0; x < camera.getWidth(); ++x) {
+                image[y][x] = color(rays[y][x]);
+            }
+        }
+
+        return image;
+
+        // TODO: Use the 2D list of Color objects to create the image
     }
 
     // Other rendering-related methods...
@@ -58,14 +82,27 @@ public:
         std::cout << "Image created successfully." << std::endl;
         //return success
     }
+
+    Vec3 color(const Ray& r) {
+        Vec3 unit_dir = r.getDirection().make_normalised();
+        float t = 0.5*(unit_dir.y() + 1.0);
+        return (1.0-t)*Vec3(1.0,1.0,1.0)+t*Vec3(0.5,0.7,1.0);
+    }
 };
+
+
 
 int main() {
     // Set up scene and rendering options.
     RayTracer renderer;
 
-    renderer.RenderScene(/* rendering options */);
-    renderer.SavePPMImage("output.ppm");
+    //parseJson("imports/binary_primitives.json");
+
+
+
+
+    //renderer.RenderScene(/* rendering options */);
+    //renderer.SavePPMImage("output.ppm");
 
     return 0;
 }

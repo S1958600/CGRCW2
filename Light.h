@@ -1,4 +1,4 @@
-#ifndef Ray_h
-#define Ray_h
+#ifndef Light_h
+#define Light_h
 // Add your declarations here
 #endif
