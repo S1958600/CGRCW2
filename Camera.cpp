@@ -47,3 +47,19 @@ Ray** Camera::generateAllRays(int imageWidth, int imageHeight) const {
     return rays;
 }
 
+Ray* Camera::generateAllRays1D(int imageWidth, int imageHeight) const {
+    // Allocate memory for the 1D array
+    Ray* rays = new Ray[imageHeight * imageWidth];
+
+    // Generate a ray for each pixel
+    for (int y = 0; y < imageHeight; ++y) {
+        for (int x = 0; x < imageWidth; ++x) {
+            int index = y * imageWidth + x;
+            rays[index] = generateRay(x, y, imageWidth, imageHeight);
+        }
+    }
+
+    printf("Generated all rays %d x %d array\n", imageHeight, imageWidth);
+
+    return rays;
+}
