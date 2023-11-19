@@ -20,6 +20,14 @@ void Scene::setBackgroundColor(const Vec3& color) {
     backgroundcolor_ = color;
 }
 
+Shape* Scene::getShape(int index) const {
+    return shapes_[index];
+}
+
+std::vector<Shape*> Scene::getShapes() const {
+    return shapes_;
+}
+
 
 /*
 void Scene::addLight(const Light& light) {

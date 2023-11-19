@@ -23,7 +23,8 @@ public:
     Camera getCamera() const;
     Vec3 getBackgroundColor() const;
     //Light getLight(int index) const;
-    Shape getShape(int index) const;
+    Shape* getShape(int index) const;
+    std::vector<Shape*> getShapes() const;
 
     // Add other methods for managing the scene
 

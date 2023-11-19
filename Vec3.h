@@ -2,6 +2,7 @@
 #define VECH
 
 #include <cmath>
+#include <istream>
 
 class Vec3 {
 public:
@@ -46,7 +47,22 @@ public:
     Vec3& operator/=(const Vec3& v2);
     Vec3& operator*=(const float t);
     Vec3& operator/=(const float t);
+    Vec3& operator=(const Vec3& other);
+
+
+    float length() const;
+    float length_squared() const;
+    Vec3 pointOnVector(float t) const;
+
+    //make current vector a unit vector
+    void normalise();
+
+    //return a unit vector in the same direction as the current vector
+    Vec3 make_normalised() const;
+
     
+
+
 
     // Add the remaining function definitions from Vec3.cpp here
 };

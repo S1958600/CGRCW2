@@ -15,6 +15,7 @@ public:
     bool isrefractive;        // Indicates if the material is refractive
     float refractiveindex;    // Refractive index
 
+    // Default constructor
     Material();
 
     // Constructor

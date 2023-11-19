@@ -15,6 +15,8 @@ public:
     // Method to generate all rays required to create a full image
     Ray** generateAllRays(int imageWidth, int imageHeight) const;
 
+    Ray* generateAllRays1D(int imageWidth, int imageHeight) const;
+
     // Getters
     int getWidth() const { return width_; }
     int getHeight() const { return height_; }

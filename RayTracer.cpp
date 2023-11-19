@@ -5,18 +5,26 @@
 
 //#include "ImportParser.cpp"
 #include "RayStructures.h"
-//#include "Sphere.h"
+#include "Sphere.h"
 #include "ImageWriter.h"
 #include "Scene.h"
+#include "Material.h"
 
 
 class RayTracer {
+private:
+    Scene scene;
+
 public:
     RayTracer(/* constructor parameters */) {
         // Initialize rendering parameters and scene.
     }
 
-    Vec3** RenderScene(Scene& scene) {
+    void setScene(Scene& scene) {
+        this->scene = scene;
+    }
+
+    Vec3** RenderScene() {
         // Get the Camera object from the Scene object
         Camera camera = scene.getCamera();
 
@@ -29,17 +37,47 @@ public:
             image[i] = new Vec3[camera.getWidth()];
         }
 
+        printf("Image allocated space %d x %d array\n", camera.getHeight(), camera.getWidth());
+
+
         // Calculate the color of each pixel
         for (int y = 0; y < camera.getHeight(); ++y) {
             for (int x = 0; x < camera.getWidth(); ++x) {
                 image[y][x] = color(rays[y][x]);
+                printf("Color calculated for pixel (%d, %d)\n", y, x);
             }
         }
 
+    
         return image;
 
         // TODO: Use the 2D list of Color objects to create the image
     }
+
+    Vec3* RenderScene1D() {
+        // Get the Camera object from the Scene object
+        Camera camera = scene.getCamera();
+
+        // Generate a 1D list of Ray objects
+        Ray* rays = camera.generateAllRays1D(camera.getWidth(), camera.getHeight());
+
+        // Create a 1D list of Color objects to store the color of each pixel
+        Vec3* image = new Vec3[camera.getHeight() * camera.getWidth()];
+
+        printf("Image allocated space %d x %d array\n", camera.getHeight(), camera.getWidth());
+
+        // Calculate the color of each pixel
+        for (int y = 0; y < camera.getHeight(); ++y) {
+            for (int x = 0; x < camera.getWidth(); ++x) {
+                int index = y * camera.getWidth() + x;
+                image[index] = color(rays[index]);
+                printf("Color calculated for pixel (%d, %d)\n", y, x);
+            }
+        }
+
+        return image;
+    }
+
 
     // Other rendering-related methods...
 
@@ -87,9 +125,14 @@ public:
     }
 
     Vec3 color(const Ray& r) {
-        Vec3 unit_dir = r.getDirection().make_normalised();
-        float t = 0.5*(unit_dir.y() + 1.0);
-        return (1.0-t)*Vec3(1.0,1.0,1.0)+t*Vec3(0.5,0.7,1.0);
+
+        Hit hit = Hit();
+        for (const auto& shape : scene.getShapes()) {
+            if (shape->intersect(r, hit)) {
+                return Vec3(10.0, 0.0, 0.0);
+            }
+        }
+        return scene.getBackgroundColor();
     }
 };
 
@@ -102,15 +145,24 @@ int main() {
     //parseJson("imports/binary_primitives.json");
 
     Scene basicScene = Scene();
+    printf("Scene created\n");
+
+    Material material = Material();
 
     basicScene.setCamera(Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1));
-    basicScene.setBackgroundColor(Vec3(0.25, 0.25, 0.25));
-    //basicScene.addShape(Sphere(Vec3(-0.3, 0.19, 1), 0.2, Material()));
-    
-    Vec3** image = renderer.RenderScene(basicScene);
+    basicScene.setBackgroundColor(Vec3(0.25, 0.25, 1.0));
+    basicScene.addShape(new Sphere(Vec3(-0.3, 0.19, 1), 0.2, material));
+    printf("Scene populated\n");
+
+    renderer.setScene(basicScene);
+
+    Vec3* image = renderer.RenderScene1D();
+    printf("Scene rendered\n");
+
 
     ImageWriter::writePPM("output.ppm", image, 1200, 800);
     
+    printf("Image write exited\n");
 
     //renderer.RenderScene(/* rendering options */);
     //renderer.SavePPMImage("output.ppm");

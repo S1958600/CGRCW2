@@ -42,6 +42,7 @@ Ray** Camera::generateAllRays(int imageWidth, int imageHeight) const {
             rays[y][x] = generateRay(x, y, imageWidth, imageHeight);
         }
     }
+    printf("Generated all rays %d x %d array\n", imageHeight, imageWidth);
 
     return rays;
 }
