@@ -1,18 +1,18 @@
 #include "Cylinder.h"
 #include <cmath>
 
-Cylinder::Cylinder(const Vec3& center, const Vec3& axis, float radius, float height, const Material& material)
+Cylinder::Cylinder(const Vec3& center, const Vec3& axis, double radius, double height, const Material& material)
     : Shape(material), center_(center), axis_(axis), radius_(radius), height_(height), material_(material) {}
 
 Cylinder::~Cylinder() {}
 
 
-bool Cylinder::withinCylinderBounds(float t, const Vec3& ray_origin, const Vec3& ray_direction) const {
+bool Cylinder::withinCylinderBounds(double t, const Vec3& ray_origin, const Vec3& ray_direction) const {
     Vec3 hit_point = ray_origin + t * ray_direction;
     Vec3 distance = hit_point - center_;
 
     // Calculate the projection of the distance vector onto the axis of the cylinder
-    float projection = dot(distance, axis_);
+    double projection = dot(distance, axis_);
 
     // Check if the hit point is within the bounds of the cylinder
     if (projection >= 0 && projection <= height_) {
@@ -32,24 +32,24 @@ bool Cylinder::withinCylinderBounds(float t, const Vec3& ray_origin, const Vec3&
 bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
     Vec3 oc = ray.getOrigin() - center_;
 
-    float a = dot(ray.getDirection() - axis_ * dot(ray.getDirection(), axis_), ray.getDirection() - axis_ * dot(ray.getDirection(), axis_));
-    float b = 2 * dot(ray.getDirection() - axis_ * dot(ray.getDirection(), axis_), oc - axis_ * dot(oc, axis_));
-    float c = dot(oc - axis_ * dot(oc, axis_), oc - axis_ * dot(oc, axis_)) - radius_ * radius_;
+    double a = dot(ray.getDirection() - axis_ * dot(ray.getDirection(), axis_), ray.getDirection() - axis_ * dot(ray.getDirection(), axis_));
+    double b = 2 * dot(ray.getDirection() - axis_ * dot(ray.getDirection(), axis_), oc - axis_ * dot(oc, axis_));
+    double c = dot(oc - axis_ * dot(oc, axis_), oc - axis_ * dot(oc, axis_)) - radius_ * radius_;
 
-    float discriminant = b * b - 4 * a * c;
+    double discriminant = b * b - 4 * a * c;
     
-    float tolerance = 1e-6f;
+    double tolerance = 1e-6f;
     if (discriminant >= -tolerance) {
-        float root = std::sqrt(discriminant);
-        float t1 = (-b - root) / (2 * a);
-        float t2 = (-b + root) / (2 * a);
+        double root = std::sqrt(discriminant);
+        double t1 = (-b - root) / (2 * a);
+        double t2 = (-b + root) / (2 * a);
 
         // Check both roots and choose the one that is closest to the ray origin
-        float t = std::numeric_limits<float>::max();
+        double t = std::numeric_limits<double>::max();
         Vec3 intersectionPoint;
         Vec3 outward_normal;
 
-        for (float root : {t1, t2}) {
+        for (double root : {t1, t2}) {
             Vec3 potentialIntersectionPoint = ray.pointAtParameter(root);
             if (root < t) {
                 t = root;
@@ -60,12 +60,12 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
 
         // Check if the chosen intersection point is within the bounds
         Vec3 distance = intersectionPoint - center_;
-        float projection = dot(distance, axis_);
+        double projection = dot(distance, axis_);
         if (projection >= 0 && projection <= height_) {
             Vec3 perpendicular_distance = distance - projection * axis_;
             if (perpendicular_distance.length_squared() <= radius_ * radius_) {
                 // Add an epsilon offset to the intersection point
-                float epsilon = 0.0001f;
+                double epsilon = 0.0001f;
                 intersectionPoint += epsilon * outward_normal;
                 hit = Hit(true, t, intersectionPoint, outward_normal);
                 return true;
@@ -73,8 +73,8 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
         }
 
         // Check for intersections with end caps
-        float t_top_cap = dot((center_ + height_ * axis_ - ray.getOrigin()), axis_) / dot(ray.getDirection(), axis_);
-        float t_bottom_cap = dot((center_ - ray.getOrigin()), axis_) / dot(ray.getDirection(), axis_);
+        double t_top_cap = dot((center_ + height_ * axis_ - ray.getOrigin()), axis_) / dot(ray.getDirection(), axis_);
+        double t_bottom_cap = dot((center_ - ray.getOrigin()), axis_) / dot(ray.getDirection(), axis_);
 
         // Check if the intersection point is within the end cap bounds
         Vec3 top_cap_intersection = ray.pointAtParameter(t_top_cap);

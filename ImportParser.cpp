@@ -14,8 +14,8 @@ Scene parseJSON(const std::string& filename) {
 
     // Extracting data from JSON and populating the Scene object
 
-    scene.setNBounces(jsonData["nbounces"]);
-    scene.setRenderMode(jsonData["rendermode"]);
+    //scene.setNBounces(jsonData["nbounces"]);
+    //scene.setRenderMode(jsonData["rendermode"]);
 
     // Parsing camera data
     json cameraData = jsonData["camera"];
@@ -24,18 +24,18 @@ Scene parseJSON(const std::string& filename) {
     Vec3 position(cameraData["position"][0], cameraData["position"][1], cameraData["position"][2]);
     Vec3 lookAt(cameraData["lookAt"][0], cameraData["lookAt"][1], cameraData["lookAt"][2]);
     Vec3 upVector(cameraData["upVector"][0], cameraData["upVector"][1], cameraData["upVector"][2]);
-    float fov = cameraData["fov"];
-    float exposure = cameraData["exposure"];
+    double fov = cameraData["fov"];
+    double exposure = cameraData["exposure"];
 
     // Creating and setting the Camera object
     Camera camera(width, height, position, lookAt, upVector, fov, exposure);
-    scene.setCamera(camera);
+    //scene.setCamera(camera);
 
     // Parsing scene data
     json sceneData = jsonData["scene"];
     
     // Extract background color
-    std::vector<float> bgColor = sceneData["backgroundcolor"];
+    std::vector<double> bgColor = sceneData["backgroundcolor"];
     scene.setBackgroundColor(Vec3(bgColor[0], bgColor[1], bgColor[2]));
 
     // Extract light sources
@@ -52,15 +52,3 @@ Scene parseJSON(const std::string& filename) {
 
     return scene;
 }
-
-
-/*
-int main() {
-    Scene scene = parseJSON("scene.json");
-
-    // Use the parsed scene for rendering or further processing
-    // ...
-
-    return 0;
-}
-*/

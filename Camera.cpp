@@ -2,19 +2,19 @@
 
 #include <cmath>
 
-Camera::Camera(const int width, const int height,const Vec3& position, const Vec3& lookAt, const Vec3& upVector, float fov, float exposure)
+Camera::Camera(const int width, const int height,const Vec3& position, const Vec3& lookAt, const Vec3& upVector, double fov, double exposure)
     : width_(width), height_(height),position_(position), lookAt_(lookAt), upVector_(upVector), fov_(fov) {}
 
 Ray Camera::generateRay(int x, int y, int imageWidth, int imageHeight) const {
-    float aspectRatio = static_cast<float>(imageWidth) / static_cast<float>(imageHeight);
+    double aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
 
     // Calculate screen coordinates
-    float screenX = (2.0f * static_cast<float>(x) / static_cast<float>(imageWidth)) - 1.0f;
-    float screenY = 1.0f - (2.0f * static_cast<float>(y) / static_cast<float>(imageHeight));
+    double screenX = (2.0f * static_cast<double>(x) / static_cast<double>(imageWidth)) - 1.0f;
+    double screenY = 1.0f - (2.0f * static_cast<double>(y) / static_cast<double>(imageHeight));
 
     // Calculate camera space coordinates
-    float cameraX = screenX * aspectRatio * std::tan(fov_ / 2.0f);
-    float cameraY = screenY * std::tan(fov_ / 2.0f);
+    double cameraX = screenX * aspectRatio * std::tan(fov_ / 2.0f);
+    double cameraY = screenY * std::tan(fov_ / 2.0f);
 
     // Compute direction vector using the camera parameters
     Vec3 direction = (lookAt_ - position_).make_normalised(); // Normalize lookAt - position
@@ -29,8 +29,8 @@ Ray Camera::generateRay(int x, int y, int imageWidth, int imageHeight) const {
 
 
 
-Ray* Camera::generateAllRays1D(int imageWidth, int imageHeight) const {
-    // Allocate memory for the 1D array
+Ray* Camera::generateAllRays(int imageWidth, int imageHeight) const {
+    // Allocate memory for the array
     Ray* rays = new Ray[imageHeight * imageWidth];
 
     // Generate a ray for each pixel

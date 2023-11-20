@@ -12,29 +12,43 @@
 #include "Scene.h"
 #include "Material.h"
 
+enum RenderMode {
+    BINARY,
+    PHONG,
+    PATHTRACER
+};
+
 
 class RayTracer {
 private:
     Scene scene;
+    Camera camera;
+    RenderMode renderMode;
 
 public:
-    RayTracer(/* constructor parameters */) {
-        // Initialize rendering parameters and scene.
-    }
+    RayTracer() : renderMode(BINARY) {}
+
+    RayTracer(RenderMode renderMode, Camera& camera, Scene& scene ) : renderMode(renderMode), camera(camera), scene(scene) {}
 
     void setScene(Scene& scene) {
         this->scene = scene;
     }
 
+    void setCamera(Camera& camera) {
+        this->camera = camera;
+    }
 
-    Vec3* RenderScene1D() {
-        // Get the Camera object from the Scene object
-        Camera camera = scene.getCamera();
+    void setRenderMode(RenderMode renderMode) {
+        this->renderMode = renderMode;
+    }
 
-        // Generate a 1D list of Ray objects
-        Ray* rays = camera.generateAllRays1D(camera.getWidth(), camera.getHeight());
 
-        // Create a 1D list of Color objects to store the color of each pixel
+    Vec3* RenderScene() {
+
+        // Generate a list of Ray objects
+        Ray* rays = camera.generateAllRays(camera.getWidth(), camera.getHeight());
+
+        // Create a list of Color objects to store the color of each pixel
         Vec3* image = new Vec3[camera.getHeight() * camera.getWidth()];
 
         // Calculate the color of each pixel
@@ -50,14 +64,27 @@ public:
 
 
     Vec3 color(const Ray& r) {
-
         Hit hit = Hit();
-        for (const auto& shape : scene.getShapes()) {
-            if (shape->intersect(r, hit)) {
-                return Vec3(1.0, 0.0, 0.0);
+
+        if (renderMode == BINARY){
+            for (const auto& shape : scene.getShapes()) {
+                if (shape->intersect(r, hit)) {
+                    return Vec3(1.0, 0.0, 0.0);
+                }
             }
         }
+        else if (renderMode == PHONG){
+            /* code */
+        }
+        else if (renderMode == PATHTRACER){
+            /* code */
+        }
+
+        //no rendering option selected or no hit
         return scene.getBackgroundColor();
+
+        
+        
     }
 };
 
@@ -70,33 +97,31 @@ int main() {
     //parseJson("imports/binary_primitives.json");
 
     Scene basicScene = Scene();
-    printf("Scene created\n");
 
     Material material = Material();
 
-    basicScene.setCamera(Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1));
-    basicScene.setBackgroundColor(Vec3(0.25, 0.25, 1.0));
-    basicScene.addShape(new Sphere(Vec3(0.0, 0.5, 1.0), 0.2, material));
-    //basicScene.addShape(new Cylinder(Vec3(-0.5, -0.1, 0.3), Vec3(1.0, 0.0, 0.0), 0.15, 0.2, material));
-    //basicScene.addShape(new Cylinder(Vec3(0.0, -0.1, 0.3), Vec3(0.0, 1.0, 0.0), 0.15, 0.2, material));
-    //basicScene.addShape(new Cylinder(Vec3(0.5, -0.1, 0.3), Vec3(0.0, 0.0, 1.0), 0.15, 0.2, material));
-    basicScene.addShape(new Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.5, 0.0, 1.0), Vec3(0.25, 0.25, 1.0), material));
+    Camera cam = Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1);
+    renderer.setCamera(cam);
+
+    basicScene.setBackgroundColor(Vec3(0.0, 0.0, 0.0));
+    //basicScene.addShape(new Sphere(Vec3(0.0, 0.5, 1.0), 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(-0.5, -0.1, 1), Vec3(1.0, 0.0, 0.0), 0.15, 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(0.0, -0.1, 1), Vec3(0.0, 1.0, 0.0), 0.15, 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(0.5, -0.1, 1), Vec3(0.0, 0.0, 1.0), 0.15, 0.2, material));
+    //basicScene.addShape(new Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.5, 0.0, 1.0), Vec3(0.25, 0.25, 1.0), material));
 
 
     printf("Scene populated\n");
 
     renderer.setScene(basicScene);
 
-    Vec3* image = renderer.RenderScene1D();
+    Vec3* image = renderer.RenderScene();
     printf("Scene rendered\n");
 
 
     ImageWriter::writePPM("output.ppm", image, 1200, 800);
     
-    printf("Image write exited\n");
-
-    //renderer.RenderScene(/* rendering options */);
-    //renderer.SavePPMImage("output.ppm");
+    printf("Image write finished\n");
 
     return 0;
 }
