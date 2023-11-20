@@ -28,24 +28,6 @@ Ray Camera::generateRay(int x, int y, int imageWidth, int imageHeight) const {
 }
 
 
-Ray** Camera::generateAllRays(int imageWidth, int imageHeight) const {
-    
-    // Allocate memory for the 2D array
-    Ray** rays = new Ray*[imageHeight];
-    for (int i = 0; i < imageHeight; ++i) {
-        rays[i] = new Ray[imageWidth];
-    }
-
-    // Generate a ray for each pixel
-    for (int y = 0; y < imageHeight; ++y) {
-        for (int x = 0; x < imageWidth; ++x) {
-            rays[y][x] = generateRay(x, y, imageWidth, imageHeight);
-        }
-    }
-    printf("Generated all rays %d x %d array\n", imageHeight, imageWidth);
-
-    return rays;
-}
 
 Ray* Camera::generateAllRays1D(int imageWidth, int imageHeight) const {
     // Allocate memory for the 1D array

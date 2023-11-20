@@ -6,6 +6,7 @@
 //#include "ImportParser.cpp"
 #include "RayStructures.h"
 #include "Sphere.h"
+#include "Cylinder.h"
 #include "ImageWriter.h"
 #include "Scene.h"
 #include "Material.h"
@@ -24,35 +25,6 @@ public:
         this->scene = scene;
     }
 
-    Vec3** RenderScene() {
-        // Get the Camera object from the Scene object
-        Camera camera = scene.getCamera();
-
-        // Generate a 2D list of Ray objects
-        Ray** rays = camera.generateAllRays(camera.getWidth(), camera.getHeight());
-
-        // Create a 2D list of Color objects to store the color of each pixel
-        Vec3** image = new Vec3*[camera.getHeight()];
-        for (int i = 0; i < camera.getHeight(); ++i) {
-            image[i] = new Vec3[camera.getWidth()];
-        }
-
-        printf("Image allocated space %d x %d array\n", camera.getHeight(), camera.getWidth());
-
-
-        // Calculate the color of each pixel
-        for (int y = 0; y < camera.getHeight(); ++y) {
-            for (int x = 0; x < camera.getWidth(); ++x) {
-                image[y][x] = color(rays[y][x]);
-                printf("Color calculated for pixel (%d, %d)\n", y, x);
-            }
-        }
-
-    
-        return image;
-
-        // TODO: Use the 2D list of Color objects to create the image
-    }
 
     Vec3* RenderScene1D() {
         // Get the Camera object from the Scene object
@@ -64,14 +36,11 @@ public:
         // Create a 1D list of Color objects to store the color of each pixel
         Vec3* image = new Vec3[camera.getHeight() * camera.getWidth()];
 
-        printf("Image allocated space %d x %d array\n", camera.getHeight(), camera.getWidth());
-
         // Calculate the color of each pixel
         for (int y = 0; y < camera.getHeight(); ++y) {
             for (int x = 0; x < camera.getWidth(); ++x) {
                 int index = y * camera.getWidth() + x;
                 image[index] = color(rays[index]);
-                printf("Color calculated for pixel (%d, %d)\n", y, x);
             }
         }
 
@@ -151,7 +120,12 @@ int main() {
 
     basicScene.setCamera(Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1));
     basicScene.setBackgroundColor(Vec3(0.25, 0.25, 1.0));
-    basicScene.addShape(new Sphere(Vec3(-0.3, 0.19, 1), 0.2, material));
+    basicScene.addShape(new Sphere(Vec3(0.0, 0.5, 1.0), 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(-0.5, 0.0, 0.75), Vec3(1.0, 0.0, 0.0), 0.15, 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(0.0, 0.0, 0.75), Vec3(0.0, 1.0, 0.0), 0.15, 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(0.5, 0.0, 0.75), Vec3(0.0, 0.0, 1.0), 0.15, 0.2, material));
+
+
     printf("Scene populated\n");
 
     renderer.setScene(basicScene);
