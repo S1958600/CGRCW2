@@ -37,41 +37,39 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
     float c = dot(oc - axis_ * dot(oc, axis_), oc - axis_ * dot(oc, axis_)) - radius_ * radius_;
 
     float discriminant = b * b - 4 * a * c;
-
-    if (discriminant >= 0) {
+    
+    float tolerance = 1e-6f;
+    if (discriminant >= -tolerance) {
         float root = std::sqrt(discriminant);
         float t1 = (-b - root) / (2 * a);
         float t2 = (-b + root) / (2 * a);
 
-        // Check both roots and choose the one that lies within the bounds of the cylinder
+        // Check both roots and choose the one that is closest to the ray origin
         float t = std::numeric_limits<float>::max();
         Vec3 intersectionPoint;
         Vec3 outward_normal;
 
         for (float root : {t1, t2}) {
             Vec3 potentialIntersectionPoint = ray.pointAtParameter(root);
-            Vec3 distance = potentialIntersectionPoint - center_;
-
-            // Check if the intersection point is within the lateral surface bounds
-            float projection = dot(distance, axis_);
-            if (projection >= 0 && projection <= height_) {
-                Vec3 perpendicular_distance = distance - projection * axis_;
-                if (perpendicular_distance.length_squared() <= radius_ * radius_) {
-                    if (root < t) {
-                        t = root;
-                        intersectionPoint = potentialIntersectionPoint;
-                        outward_normal = (intersectionPoint - center_ - axis_ * projection) / radius_;
-                    }
-                }
+            if (root < t) {
+                t = root;
+                intersectionPoint = potentialIntersectionPoint;
+                outward_normal = (intersectionPoint - center_ - axis_ * dot(intersectionPoint - center_, axis_)) / radius_;
             }
         }
 
-        if (t != std::numeric_limits<float>::max()) {
-            // Add an epsilon offset to the intersection point
-            float epsilon = 0.0001f;
-            intersectionPoint += epsilon * outward_normal;
-            hit = Hit(true, t, intersectionPoint, outward_normal);
-            return true;
+        // Check if the chosen intersection point is within the bounds
+        Vec3 distance = intersectionPoint - center_;
+        float projection = dot(distance, axis_);
+        if (projection >= 0 && projection <= height_) {
+            Vec3 perpendicular_distance = distance - projection * axis_;
+            if (perpendicular_distance.length_squared() <= radius_ * radius_) {
+                // Add an epsilon offset to the intersection point
+                float epsilon = 0.0001f;
+                intersectionPoint += epsilon * outward_normal;
+                hit = Hit(true, t, intersectionPoint, outward_normal);
+                return true;
+            }
         }
 
         // Check for intersections with end caps
