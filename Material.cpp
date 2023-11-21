@@ -14,11 +14,11 @@ Material::Material() {
 
 
 // Constructor definition
-Material::Material(float ks, float kd, float specexp,
-                   const std::vector<float>& diffcolor,
-                   const std::vector<float>& speccolor,
-                   bool isrefl, float reflcoeff,
-                   bool isrefr, float refrindex)
+Material::Material(double ks, double kd, double specexp,
+                   const std::vector<double>& diffcolor,
+                   const std::vector<double>& speccolor,
+                   bool isrefl, double reflcoeff,
+                   bool isrefr, double refrindex)
     : ks(ks), kd(kd), specularexponent(specexp),
       diffusecolor(diffcolor), specularcolor(speccolor),
       isreflective(isrefl), reflectivity(reflcoeff),

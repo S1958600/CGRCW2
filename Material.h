@@ -5,25 +5,25 @@
 
 class Material {
 public:
-    float ks;                 // Specular reflection coefficient
-    float kd;                 // Diffuse reflection coefficient
-    float specularexponent;   // Specular reflection exponent
-    std::vector<float> diffusecolor;   // Diffuse color
-    std::vector<float> specularcolor;  // Specular color
+    double ks;                 // Specular reflection coefficient
+    double kd;                 // Diffuse reflection coefficient
+    double specularexponent;   // Specular reflection exponent
+    std::vector<double> diffusecolor;   // Diffuse color
+    std::vector<double> specularcolor;  // Specular color
     bool isreflective;        // Indicates if the material is reflective
-    float reflectivity;       // Reflectivity coefficient
+    double reflectivity;       // Reflectivity coefficient
     bool isrefractive;        // Indicates if the material is refractive
-    float refractiveindex;    // Refractive index
+    double refractiveindex;    // Refractive index
 
     // Default constructor
     Material();
 
     // Constructor
-    Material(float ks, float kd, float specexp,
-             const std::vector<float>& diffcolor,
-             const std::vector<float>& speccolor,
-             bool isrefl, float reflcoeff,
-             bool isrefr, float refrindex);
+    Material(double ks, double kd, double specexp,
+             const std::vector<double>& diffcolor,
+             const std::vector<double>& speccolor,
+             bool isrefl, double reflcoeff,
+             bool isrefr, double refrindex);
 };
 
 #endif // MATERIAL_H
