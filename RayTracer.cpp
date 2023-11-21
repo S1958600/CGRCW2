@@ -24,11 +24,13 @@ private:
     Scene scene;
     Camera camera;
     RenderMode renderMode;
+    int nbounces;
 
 public:
     RayTracer() : renderMode(BINARY) {}
 
-    RayTracer(RenderMode renderMode, Camera& camera, Scene& scene ) : renderMode(renderMode), camera(camera), scene(scene) {}
+    RayTracer(RenderMode renderMode, Camera& camera, Scene& scene, int nbounces ) 
+    : renderMode(renderMode), camera(camera), scene(scene), nbounces(nbounces) {}
 
     void setScene(Scene& scene) {
         this->scene = scene;
@@ -74,7 +76,12 @@ public:
             }
         }
         else if (renderMode == PHONG){
-            /* code */
+            for (const auto& shape : scene.getShapes()) {
+                if (shape->intersect(r, hit)) {
+                    
+                    return Vec3(1.0, 0.0, 0.0);
+                }
+            }
         }
         else if (renderMode == PATHTRACER){
             /* code */
@@ -83,7 +90,6 @@ public:
         //no rendering option selected or no hit
         return scene.getBackgroundColor();
 
-        
         
     }
 };

@@ -7,10 +7,10 @@
 class Sphere : public Shape {
 public:
     // Constructor
-    //Sphere(const Vec3 center, float radius, const Material& material);
+    //Sphere(const Vec3 center, double radius, const Material& material);
 
-    Sphere(const Vec3 &center, float radius, const Material &material);
-
+    Sphere(const Vec3 &center, double radius, const Material &material);
+    
     // Destructor
     virtual ~Sphere();
 
@@ -19,7 +19,7 @@ public:
 
 private:
     Vec3 center_;  // Sphere center
-    float radius_;               // Sphere radius
+    double radius_;               // Sphere radius
 };
 
 #endif // SPHERE_H

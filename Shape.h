@@ -19,6 +19,14 @@ public:
     // Getter for material properties
     const Material& getMaterial() const;
 
+    bool isCloser(const double t, const Hit& hit) const {
+        if (hit.t() <= 0) {
+            return true;
+        }
+
+        return t < hit.t();
+    }
+
 protected:
     Material material_;
 };
