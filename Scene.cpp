@@ -14,12 +14,14 @@ std::vector<Shape*> Scene::getShapes() const {
     return shapes_;
 }
 
+std::vector<Light*> Scene::getLights() const {
+    return lights_;
+}
 
-/*
-void Scene::addLight(const Light& light) {
+void Scene::addLight(Light* light) {
     lights_.push_back(light);
 }
-*/
+
 
 
 void Scene::addShape(Shape* shape) {

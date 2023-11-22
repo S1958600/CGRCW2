@@ -57,7 +57,11 @@ RayTracer parseRender(const std::string& filename) {
     // Extract light sources
     for (auto& light : sceneData["lightsources"]) {
         // Parse each light source and add it to the scene
-        // ...
+        Vec3 position(light["position"][0], light["position"][1], light["position"][2]);
+        Vec3 intensity(light["intensity"][0], light["intensity"][1], light["intensity"][2]);
+
+        scene.addLight(new Light(position, intensity));
+        printf("Light added\n");
     }
 
     //printf("Lights parsed\n");
@@ -68,12 +72,14 @@ RayTracer parseRender(const std::string& filename) {
         Material mat;
 
         if (jsonData.contains("material")) {
+
             //printf("Extracting material\n");
             mat = Material(shape["material"]["ks"],
-                    shape["material"]["kd"], shape["material"]["specularexponent"],
-                    shape["material"]["diffusecolor"], shape["material"]["specularcolor"],
-                    shape["material"]["isreflective"], shape["material"]["reflectivity"],
-                    shape["material"]["isrefractive"], shape["material"]["refractiveindex"]);
+                shape["material"]["kd"], shape["material"]["specularexponent"],
+                Vec3(shape["material"]["diffusecolor"][0], shape["material"]["diffusecolor"][1], shape["material"]["diffusecolor"][2]),
+                Vec3(shape["material"]["specularcolor"][0], shape["material"]["specularcolor"][1], shape["material"]["specularcolor"][2]),
+                shape["material"]["isreflective"], shape["material"]["reflectivity"],
+                shape["material"]["isrefractive"], shape["material"]["refractiveindex"]);
         } else {
             //printf("No material\n");
             mat = Material();

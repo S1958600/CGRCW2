@@ -43,7 +43,7 @@ bool Triangle::intersect(const Ray& ray, Hit& hit) const {
     Vec3 outward_normal = cross(e1, e2).make_normalised();
     
     if (isCloser(tValue, hit)) {
-        hit = Hit(true, tValue, intersectionPoint, outward_normal);
+        hit = Hit(true, tValue, intersectionPoint, outward_normal, &material_);
         return true;
     }
 

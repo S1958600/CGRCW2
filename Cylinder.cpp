@@ -69,7 +69,7 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
                 intersectionPoint += epsilon * outward_normal;
 
                 if (isCloser(t, hit)){
-                    hit = Hit(true, t, intersectionPoint, outward_normal);
+                    hit = Hit(true, t, intersectionPoint, outward_normal, &material_);
                     return true;
                 }
             }
@@ -87,7 +87,7 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
             Vec3 outward_normal = axis_;
 
             if (isCloser(t_top_cap, hit)) {
-                hit = Hit(true, t_top_cap, top_cap_intersection, outward_normal);
+                hit = Hit(true, t_top_cap, top_cap_intersection, outward_normal, &material_);
                 return true;
             }
         }
@@ -96,7 +96,7 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
             Vec3 outward_normal = -axis_;
 
             if (isCloser(t_bottom_cap, hit)) {
-                hit = Hit(true, t_bottom_cap, bottom_cap_intersection, outward_normal);
+                hit = Hit(true, t_bottom_cap, bottom_cap_intersection, outward_normal, &material_);
                 return true;
             }
         }

@@ -67,10 +67,54 @@ Vec3 RayTracer::color(const Ray& r) {
         }
     }
     else if (renderMode == PHONG){
+        Vec3 color = scene.getBackgroundColor(); // Default background color
+        if (scene.getShapes().empty()) {
+            return color; // No shapes in the scene
+        }
+
         for (const auto& shape : scene.getShapes()) {
             if (shape->intersect(r, hit)) {
-                
-                return Vec3(1.0, 0.0, 0.0);
+                //Vec3 ambient = hit.material()->ambientColor();   // Ambient color not implemented
+                Vec3 diffuse = hit.material()->diffusecolor;
+                Vec3 specular = hit.material()->specularcolor;
+
+                // Compute diffuse and specular components for each light source in the scene
+                for (const auto& light : scene.getLights()) {
+                    // Calculate light direction and distance
+                    Vec3 lightDir = (light->getPosition() - hit.location()).make_normalised();
+                    float lightDistance = (light->getPosition() - hit.location()).length();
+
+                    // Check if the point is in shadow (i.e., blocked by another object)
+                    bool inShadow = false;
+                    Hit shadowHit = Hit();
+                    Ray shadowRay(hit.location(), lightDir);
+                    for (const auto& shadowShape : scene.getShapes()) {
+                        if (shadowShape->intersect(shadowRay, shadowHit)) {
+                            if ((hit.location() - shadowRay.getOrigin()).length() < lightDistance) {
+                                inShadow = true;
+                                break;
+                                // in shadow, no need to check other objects
+                            }
+                        }
+                    }
+
+                    // If not in shadow, compute illumination
+                    if (!inShadow) {
+                        float diffuseFactor = dot(hit.normal(), lightDir);
+                        Vec3 reflectDir = (lightDir - 2 * dot(lightDir, hit.normal()) * hit.normal()).make_normalised();
+                        float specularFactor = pow(std::max(dot(reflectDir, r.getDirection()), 0.0), hit.material()->specularexponent);
+
+                        diffuse += light->getIntensity() * std::max(diffuseFactor, 0.0f);
+                        specular += light->getIntensity() * specularFactor;
+                    }
+                }
+
+                // Combine ambient, diffuse, and specular components
+                Vec3 color = diffuse * hit.material()->kd +
+                             specular * hit.material()->ks;
+                             //ambient * hit.material().getAmbientCoefficient() +
+
+                return color;
             }
         }
     }
@@ -124,6 +168,9 @@ int main() {
 
     image = parseRender("imports/binary_primitves.json").RenderScene();
     ImageWriter::writePPM("binary_primitives.ppm", image, 1200, 800);
+
+    image = parseRender("imports/simple_phong.json").RenderScene();
+    ImageWriter::writePPM("simple_phong.ppm", image, 1200, 800);
 
     return 0;
 }

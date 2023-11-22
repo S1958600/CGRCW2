@@ -35,7 +35,7 @@ bool Sphere::intersect(const Ray& ray, Hit& hit) const {
 
         // Set Hit information
         if(isCloser(t, hit)){
-            hit = Hit(true, t, intersectionPoint, outward_normal);
+            hit = Hit(true, t, intersectionPoint, outward_normal, &material_);
             return true;
         }
         

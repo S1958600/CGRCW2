@@ -2,25 +2,30 @@
 #define RAYH
 
 #include "Vec3.h"
+#include "Material.h"
 
 class Hit {
 public:
     // Constructors
     Hit() : hitOccurred_(false), t_(0.0f) {}
-    Hit(bool hitOccurred, double t, const Vec3& location, const Vec3& normal)
-        : hitOccurred_(hitOccurred), t_(t), location_(location), normal_(normal) {}
+    Hit(bool hitOccurred, double t, const Vec3& location, const Vec3& normal, const Material* material)
+        : hitOccurred_(hitOccurred), t_(t), location_(location), normal_(normal), material_(material) {}
 
     // Accessor methods
     bool hitOccurred() const { return hitOccurred_; }
     double t() const { return t_; }
     Vec3 location() const { return location_; }
     Vec3 normal() const { return normal_; }
+    const Material* material() const { return material_; }
+
 
 private:
     bool hitOccurred_; // Indicates if a hit occurred
     double t_; // Parameter along the ray where the intersection occurs
     Vec3 location_; // Coordinates of the intersection point
     Vec3 normal_; // Normal at the intersection point
+    const Material* material_; // Material of the intersected object
+
 };
 
 

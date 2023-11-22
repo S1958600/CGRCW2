@@ -34,9 +34,9 @@ Ray* Camera::generateAllRays(int imageWidth, int imageHeight) const {
     Ray* rays = new Ray[imageHeight * imageWidth];
 
     // Generate a ray for each pixel
-    for (int y = 0; y < imageHeight; ++y) {
+    for (int y = imageHeight - 1; y >= 0; --y) {
         for (int x = 0; x < imageWidth; ++x) {
-            int index = y * imageWidth + x;
+            int index = (imageHeight - y - 1) * imageWidth + x;
             rays[index] = generateRay(x, y, imageWidth, imageHeight);
         }
     }
