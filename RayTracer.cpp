@@ -57,66 +57,77 @@ Vec3* RayTracer::RenderScene() {
 
 
 Vec3 RayTracer::color(const Ray& r) {
-    Hit hit = Hit();
+    Hit closestHit;
+    Shape* closestShape = nullptr;
 
-    if (renderMode == BINARY){
-        for (const auto& shape : scene.getShapes()) {
-            if (shape->intersect(r, hit)) {
-                return Vec3(1.0, 0.0, 0.0);
+    // Find the closest shape that intersects with the ray
+    for (const auto& shape : scene.getShapes()) {
+        Hit hit;
+        if (shape->intersect(r, hit)) {
+            if (closestShape == nullptr || hit.t() < closestHit.t()) {
+                closestHit = hit;
+                closestShape = shape;
             }
         }
     }
+
+    // If no shape intersects with the ray, return the background color
+    if (closestShape == nullptr) {
+        return scene.getBackgroundColor();
+    }
+
+
+    if (renderMode == BINARY){
+        return Vec3(1.0, 0.0, 0.0);
+    }
     else if (renderMode == PHONG){
-        Vec3 color = scene.getBackgroundColor(); // Default background color
-        if (scene.getShapes().empty()) {
-            return color; // No shapes in the scene
-        }
+        Vec3 ambient = Vec3(0.1, 0.1, 0.1);   // Ambient colour defined as a constant   
+        Vec3 diffuse = closestHit.material()->diffusecolor;
+        Vec3 specular = closestHit.material()->specularcolor;
 
-        for (const auto& shape : scene.getShapes()) {
-            if (shape->intersect(r, hit)) {
-                //Vec3 ambient = hit.material()->ambientColor();   // Ambient color not implemented
-                Vec3 diffuse = hit.material()->diffusecolor;
-                Vec3 specular = hit.material()->specularcolor;
+        // Compute diffuse and specular components for each light source in the scene
+        for (const auto& light : scene.getLights()) {
+            // Calculate light direction and distance
+            Vec3 lightDir = (light->getPosition() - closestHit.location()).make_normalised();
+            float lightDistance = (light->getPosition() - closestHit.location()).length();
 
-                // Compute diffuse and specular components for each light source in the scene
-                for (const auto& light : scene.getLights()) {
-                    // Calculate light direction and distance
-                    Vec3 lightDir = (light->getPosition() - hit.location()).make_normalised();
-                    float lightDistance = (light->getPosition() - hit.location()).length();
-
-                    // Check if the point is in shadow (i.e., blocked by another object)
-                    bool inShadow = false;
-                    Hit shadowHit = Hit();
-                    Ray shadowRay(hit.location(), lightDir);
-                    for (const auto& shadowShape : scene.getShapes()) {
-                        if (shadowShape->intersect(shadowRay, shadowHit)) {
-                            if ((hit.location() - shadowRay.getOrigin()).length() < lightDistance) {
-                                inShadow = true;
-                                break;
-                                // in shadow, no need to check other objects
-                            }
-                        }
-                    }
-
-                    // If not in shadow, compute illumination
-                    if (!inShadow) {
-                        float diffuseFactor = dot(hit.normal(), lightDir);
-                        Vec3 reflectDir = (lightDir - 2 * dot(lightDir, hit.normal()) * hit.normal()).make_normalised();
-                        float specularFactor = pow(std::max(dot(reflectDir, r.getDirection()), 0.0), hit.material()->specularexponent);
-
-                        diffuse += light->getIntensity() * std::max(diffuseFactor, 0.0f);
-                        specular += light->getIntensity() * specularFactor;
+            // Check if the point is in shadow (i.e., blocked by another object)
+            bool inShadow = false;
+            Hit shadowHit = Hit();
+            Ray shadowRay(closestHit.location(), lightDir);
+            for (const auto& shadowShape : scene.getShapes()) {
+                if (shadowShape->intersect(shadowRay, shadowHit)) {
+                    if ((closestHit.location() - shadowRay.getOrigin()).length() < lightDistance) {
+                        inShadow = true;
+                        break;
+                        // in shadow, no need to check other objects
                     }
                 }
+            }
 
-                // Combine ambient, diffuse, and specular components
-                Vec3 color = diffuse * hit.material()->kd +
-                             specular * hit.material()->ks;
-                             //ambient * hit.material().getAmbientCoefficient() +
+            // If not in shadow, compute illumination
+            if (!inShadow) {
+                double diffuseFactor = dot(closestHit.normal(), lightDir);
+                Vec3 reflectDir = (lightDir - 2 * dot(lightDir, closestHit.normal()) * closestHit.normal()).make_normalised();
+                double specularFactor = pow(std::max(dot(reflectDir, r.getDirection()), 0.0), closestHit.material()->specularexponent);
 
-                return color;
+                diffuse += light->getIntensity() * std::max(diffuseFactor, 0.0);
+                specular += light->getIntensity() * specularFactor;
+
+                //printf("Diffuse: %f, %f, %f\n", diffuse.r(), diffuse.g(), diffuse.b());
+                //printf("Specular: %f, %f, %f\n", specular.r(), specular.g(), specular.b());
+                if (specular.r() < 1.0 || specular.g() < 1.0 || specular.b() < 1.0){
+                    printf("Specular: %f, %f, %f\n", specular.r(), specular.g(), specular.b());
+                }
             }
         }
+
+        // Combine ambient, diffuse, and specular components
+        Vec3 color = diffuse * closestHit.material()->kd +
+                    specular * closestHit.material()->ks +
+                    ambient * 0.1; //ambient coefficient is a constant
+
+        return color;
     }
     else if (renderMode == PATHTRACER){
         /* code */
@@ -162,8 +173,9 @@ int main() {
     
     printf("Image write finished\n");
 
-    
-    image = parseRender("imports/scene.json").RenderScene();
+    RayTracer rayTracer = parseRender("imports/scene.json");
+    rayTracer.setRenderMode(PHONG);
+    image = rayTracer.RenderScene();
     ImageWriter::writePPM("scene.ppm", image, 1200, 800);
 
     image = parseRender("imports/binary_primitves.json").RenderScene();

@@ -61,7 +61,7 @@ RayTracer parseRender(const std::string& filename) {
         Vec3 intensity(light["intensity"][0], light["intensity"][1], light["intensity"][2]);
 
         scene.addLight(new Light(position, intensity));
-        printf("Light added\n");
+        //printf("Light added\n");
     }
 
     //printf("Lights parsed\n");
@@ -71,15 +71,18 @@ RayTracer parseRender(const std::string& filename) {
         //printf("Extracting material\n");
         Material mat;
 
-        if (jsonData.contains("material")) {
+        if (shape.contains("material")) {
 
-            //printf("Extracting material\n");
+            //printf("Material found\n");
             mat = Material(shape["material"]["ks"],
                 shape["material"]["kd"], shape["material"]["specularexponent"],
                 Vec3(shape["material"]["diffusecolor"][0], shape["material"]["diffusecolor"][1], shape["material"]["diffusecolor"][2]),
                 Vec3(shape["material"]["specularcolor"][0], shape["material"]["specularcolor"][1], shape["material"]["specularcolor"][2]),
                 shape["material"]["isreflective"], shape["material"]["reflectivity"],
                 shape["material"]["isrefractive"], shape["material"]["refractiveindex"]);
+
+                //printf("Adding material, %f %f %f \n", shape["material"]["diffusecolor"][0].get<double>(), shape["material"]["diffusecolor"][1].get<double>(), shape["material"]["diffusecolor"][2].get<double>());
+
         } else {
             //printf("No material\n");
             mat = Material();
