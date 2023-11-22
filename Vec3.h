@@ -59,12 +59,6 @@ public:
 
     //return a unit vector in the same direction as the current vector
     Vec3 make_normalised() const;
-
-    
-
-
-
-    // Add the remaining function definitions from Vec3.cpp here
 };
 
 
@@ -130,7 +124,11 @@ inline void Vec3::normalise() {
 inline Vec3 Vec3::make_normalised() const {
     double len = length();
 
-    return Vec3(v[0] / len, v[1] / len, v[2] / len);
+    if (len != 0) {
+        return Vec3(v[0] / len, v[1] / len, v[2] / len);
+    } else {
+        return Vec3(0, 0, 0);  // or throw an exception, or handle this case in some other way
+    }
 }
 
 inline std::istream& operator>>(std::istream& is, Vec3& t) {

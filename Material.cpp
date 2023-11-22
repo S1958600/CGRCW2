@@ -3,7 +3,7 @@
 Material::Material() {
     ks = 0.0f;
     kd = 0.0f;
-    specularexponent = 0.0f;
+    specularexponent = 0.0001f;
     diffusecolor = Vec3(0.0f, 0.0f, 0.0f);
     specularcolor = Vec3(0.0f, 0.0f, 0.0f);
     isreflective = false;
