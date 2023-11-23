@@ -83,7 +83,6 @@ Vec3 RayTracer::color(const Ray& r) {
         return scene.getBackgroundColor();
     }
 
-
     if (renderMode == BINARY){
         return Vec3(1.0, 0.0, 0.0);
     }
@@ -101,23 +100,23 @@ Vec3 RayTracer::color(const Ray& r) {
             // Check if the point is in shadow (i.e., blocked by another object)
             bool inShadow = false;
             Hit shadowHit = Hit();
-            Ray shadowRay(closestHit.location() + closestHit.normal() * 1e-4, lightDir);
-            //0.005 is a small offset to avoid self intersection
+            // Create a shadow ray from the light towards the hit location
+            Ray shadowRay(light->getPosition(), -lightDir);
 
             for (const auto& shadowShape : scene.getShapes()) {
-                if (shadowShape == closestShape)continue;
+                if (shadowShape == closestShape) continue; // Skip the shape that the shadow ray originated from
+
                 if (shadowShape->intersect(shadowRay, shadowHit)) {
-                    if ((shadowHit.location() - closestHit.location()).length() < lightDistance) {
+                    if ((shadowHit.location() - light->getPosition()).length() < lightDistance) {
                         inShadow = true;
                         break;
-                        // in shadow, no need to check other objects
                     }
                 }
             }
             
 
             // If not in shadow, compute and add illumination
-            if (!inShadow || inShadow) {
+            if (!inShadow) {
                 double diffuseFactor = dot(closestHit.normal(), lightDir);
                 Vec3 reflectDir = (lightDir - 2 * dot(lightDir, closestHit.normal()) * closestHit.normal()).make_normalised();
                 double specularFactor = pow(std::max(dot(reflectDir, -r.getDirection()), 0.0), closestHit.material()->specularexponent);
