@@ -37,9 +37,9 @@ void RayTracer::setRenderMode(RenderMode renderMode) {
 
 
 Vec3* RayTracer::RenderScene() {
-
+    int samples = camera.getSamples();
     // Generate a list of Ray objects
-    Ray* rays = camera.generateAllRays(camera.getWidth(), camera.getHeight());
+    Ray* rays = camera.generateAllRays();
 
     // Create a list of Color objects to store the color of each pixel
     Vec3* image = new Vec3[camera.getHeight() * camera.getWidth()];
@@ -47,11 +47,18 @@ Vec3* RayTracer::RenderScene() {
     // Calculate the color of each pixel
     for (int y = 0; y < camera.getHeight(); ++y) {
         for (int x = 0; x < camera.getWidth(); ++x) {
+            Vec3 colorSum(0, 0, 0);
+            for (int s = 0; s < samples; ++s) {
+                int index = ((y * camera.getWidth() + x) * samples) + s;
+                colorSum += color(rays[index]);
+                //printf("Pixel %d, %f, %f, %f rendered\n", index, colorSum[0], colorSum[1], colorSum[2]);
+            }
             int index = y * camera.getWidth() + x;
-            image[index] = color(rays[index]);
+            image[index] = colorSum / samples;
         }
     }
 
+    delete[] rays;
     return image;
 }
 
@@ -94,9 +101,11 @@ Vec3 RayTracer::color(const Ray& r) {
             // Check if the point is in shadow (i.e., blocked by another object)
             bool inShadow = false;
             Hit shadowHit = Hit();
-            Ray shadowRay(closestHit.location() + closestHit.normal() * 0.005, lightDir);
-            
+            Ray shadowRay(closestHit.location() + closestHit.normal() * 1e-4, lightDir);
+            //0.005 is a small offset to avoid self intersection
+
             for (const auto& shadowShape : scene.getShapes()) {
+                if (shadowShape == closestShape)continue;
                 if (shadowShape->intersect(shadowRay, shadowHit)) {
                     if ((shadowHit.location() - closestHit.location()).length() < lightDistance) {
                         inShadow = true;
@@ -111,8 +120,7 @@ Vec3 RayTracer::color(const Ray& r) {
             if (!inShadow) {
                 double diffuseFactor = dot(closestHit.normal(), lightDir);
                 Vec3 reflectDir = (lightDir - 2 * dot(lightDir, closestHit.normal()) * closestHit.normal()).make_normalised();
-                double specularFactor = pow(std::max(dot(reflectDir, r.getDirection()), 0.0), closestHit.material()->specularexponent);
-
+                double specularFactor = pow(std::max(dot(reflectDir, -r.getDirection()), 0.0), closestHit.material()->specularexponent);
                 diffuse += closestHit.material()->diffusecolor * light->getIntensity() * std::max(diffuseFactor, 0.0);
                 specular += closestHit.material()->specularcolor * light->getIntensity() * specularFactor;
             }
@@ -146,7 +154,7 @@ int main() {
 
     Material material = Material( 0.1, 0.9, 10, Vec3(0.5, 1, 0.5),Vec3(1.0,1.0,1.0), false, 1.0, false, 1.0);
 
-    Camera cam = Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1);
+    Camera cam = Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1, 4);
     renderer.setCamera(cam);
 
     basicScene.setBackgroundColor(Vec3(0.0, 0.0, 0.0));
