@@ -10,9 +10,7 @@ public:
     Cylinder(const Vec3& center, const Vec3& axis, double radius, double height, const Material& material);
 
     ~Cylinder();
-
-    bool withinCylinderBounds(double t, const Vec3& ray_origin, const Vec3& ray_direction) const;
-
+    
     bool intersect(const Ray& ray, Hit& hit) const;
 
 private:

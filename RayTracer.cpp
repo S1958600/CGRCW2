@@ -117,7 +117,7 @@ Vec3 RayTracer::color(const Ray& r) {
             
 
             // If not in shadow, compute and add illumination
-            if (!inShadow) {
+            if (!inShadow || inShadow) {
                 double diffuseFactor = dot(closestHit.normal(), lightDir);
                 Vec3 reflectDir = (lightDir - 2 * dot(lightDir, closestHit.normal()) * closestHit.normal()).make_normalised();
                 double specularFactor = pow(std::max(dot(reflectDir, -r.getDirection()), 0.0), closestHit.material()->specularexponent);

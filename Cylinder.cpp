@@ -7,30 +7,8 @@ Cylinder::Cylinder(const Vec3& center, const Vec3& axis, double radius, double h
 Cylinder::~Cylinder() {}
 
 
-bool Cylinder::withinCylinderBounds(double t, const Vec3& ray_origin, const Vec3& ray_direction) const {
-    Vec3 hit_point = ray_origin + t * ray_direction;
-    Vec3 distance = hit_point - center_;
-
-    // Calculate the projection of the distance vector onto the axis of the cylinder
-    double projection = dot(distance, axis_);
-
-    // Check if the hit point is within the bounds of the cylinder
-    if (projection >= 0 && projection <= height_) {
-        // Calculate the perpendicular distance from the hit point to the axis
-        Vec3 perpendicular_distance = distance - projection * axis_;
-
-        // Check if the perpendicular distance is within the radius
-        if (perpendicular_distance.length_squared() <= radius_ * radius_) {
-            return true; // Inside the cylinder bounds
-        }
-    }
-
-    return false; // Outside the cylinder bounds
-}
-
-
 bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
-    Vec3 oc = ray.getOrigin() - center_;
+    Vec3 oc = (ray.getOrigin()-axis_) - (center_-axis_);
 
     double a = dot(ray.getDirection() - axis_ * dot(ray.getDirection(), axis_), ray.getDirection() - axis_ * dot(ray.getDirection(), axis_));
     double b = 2 * dot(ray.getDirection() - axis_ * dot(ray.getDirection(), axis_), oc - axis_ * dot(oc, axis_));
@@ -51,27 +29,19 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit) const {
 
         for (double root : {t1, t2}) {
             Vec3 potentialIntersectionPoint = ray.pointAtParameter(root);
-            if (root < t) {
+            if (root < t && t>0) {
                 t = root;
                 intersectionPoint = potentialIntersectionPoint;
                 outward_normal = (intersectionPoint - center_ - axis_ * dot(intersectionPoint - center_, axis_)) / radius_;
             }
         }
 
-        // Check if the chosen intersection point is within the bounds
-        Vec3 distance = intersectionPoint - center_;
-        double projection = dot(distance, axis_);
-        if (projection >= 0 && projection <= height_) {
-            Vec3 perpendicular_distance = distance - projection * axis_;
-            if (perpendicular_distance.length_squared() <= radius_ * radius_) {
-                // Add an epsilon offset to the intersection point
-                double epsilon = 0.0001f;
-                intersectionPoint += epsilon * outward_normal;
+        double z = dot(oc, axis_) + t * dot(ray.getDirection(), axis_);
 
-                if (isCloser(t, hit)){
+        if (z >= -height_ && z <= height_ ) {
+            if (isCloser(t, hit)){
                     hit = Hit(true, t, intersectionPoint, outward_normal, &material_);
                     return true;
-                }
             }
         }
 
