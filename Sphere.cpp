@@ -10,7 +10,9 @@ Sphere::Sphere(const Vec3& center, double radius, const Material& material)
 Sphere::~Sphere() {}
 
 // Method for ray-sphere intersection testing
-bool Sphere::intersect(const Ray& ray, Hit& hit) const {
+bool Sphere::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
+    if(ignoreShape == this){return false;}
+
     // Ray-sphere intersection algorithm
     Vec3 oc = ray.getOrigin() - center_;
     

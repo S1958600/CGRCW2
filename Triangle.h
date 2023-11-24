@@ -9,7 +9,7 @@ public:
     Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, const Material& material);
     ~Triangle();
 
-    bool intersect(const Ray& ray, Hit& hit) const override;
+    bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const override;
 
 private:
     Vec3 v0_;

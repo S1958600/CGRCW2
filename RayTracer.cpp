@@ -15,13 +15,13 @@
 
 
 
-RayTracer::RayTracer() : renderMode(BINARY) {}
+RayTracer::RayTracer() : renderMode(BINARY) {samplesPP = 4; maxDepth = 8;}
 
 RayTracer::RayTracer(RenderMode renderMode, Camera& camera, Scene& scene, int nbounces ) 
-: renderMode(renderMode), camera(camera), scene(scene), nbounces(nbounces) {}
+: renderMode(renderMode), camera(camera), scene(scene), nbounces(nbounces) {samplesPP = 4; maxDepth = 8;}
 
 RayTracer::RayTracer(RenderMode renderMode, Camera& camera, Scene& scene)
-: renderMode(renderMode), camera(camera), scene(scene) {nbounces = 0;}
+: renderMode(renderMode), camera(camera), scene(scene) {samplesPP = 4; maxDepth = 8;}
 
 void RayTracer::setScene(Scene& scene) {
     this->scene = scene;
@@ -37,7 +37,7 @@ void RayTracer::setRenderMode(RenderMode renderMode) {
 
 
 Vec3* RayTracer::RenderScene() {
-    int samples = camera.getSamples();
+    camera.setSamples(samplesPP);
     // Generate a list of Ray objects
     Ray* rays = camera.generateAllRays();
 
@@ -48,13 +48,12 @@ Vec3* RayTracer::RenderScene() {
     for (int y = 0; y < camera.getHeight(); ++y) {
         for (int x = 0; x < camera.getWidth(); ++x) {
             Vec3 colorSum(0, 0, 0);
-            for (int s = 0; s < samples; ++s) {
-                int index = ((y * camera.getWidth() + x) * samples) + s;
-                colorSum += color(rays[index]);
-                //printf("Pixel %d, %f, %f, %f rendered\n", index, colorSum[0], colorSum[1], colorSum[2]);
+            for (int s = 0; s < samplesPP; ++s) {
+                int index = ((y * camera.getWidth() + x) * samplesPP) + s;
+                colorSum += color(rays[index], 0, nullptr);
             }
             int index = y * camera.getWidth() + x;
-            image[index] = colorSum / samples;
+            image[index] = colorSum / samplesPP;
         }
     }
 
@@ -63,14 +62,17 @@ Vec3* RayTracer::RenderScene() {
 }
 
 
-Vec3 RayTracer::color(const Ray& r) {
+Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
+    // If the ray has bounced too many times, no more light is gathered
+    if (depth > maxDepth) return scene.getBackgroundColor();
+
     Hit closestHit;
     Shape* closestShape = nullptr;
 
     // Find the closest shape that intersects with the ray
     for (const auto& shape : scene.getShapes()) {
         Hit hit;
-        if (shape->intersect(r, hit)) {
+        if (shape->intersect(r, hit, ignoreShape)) {
             if (closestShape == nullptr || hit.t() < closestHit.t()) {
                 closestHit = hit;
                 closestShape = shape;
@@ -79,15 +81,15 @@ Vec3 RayTracer::color(const Ray& r) {
     }
 
     // If no shape intersects with the ray, return the background color
-    if (closestShape == nullptr) {
-        return scene.getBackgroundColor();
-    }
+    if (closestShape == nullptr) {return scene.getBackgroundColor();}
 
-    if (renderMode == BINARY){
-        return Vec3(1.0, 0.0, 0.0);
-    }
+    // If the ray intersects with a shape, calculate the color of the pixel
+    //binary simply returns red if there is a hit
+    if (renderMode == BINARY){return Vec3(1.0, 0.0, 0.0);}
+
     else if (renderMode == PHONG){
-        Vec3 ambient = closestHit.material()->diffusecolor;   // Ambient colour is just dim diffuse colour
+        double ka = 0.3;
+        Vec3 ambient = Vec3(0.3,0.3,0.3) + (closestHit.material()->diffusecolor * 0.3);
         Vec3 diffuse(0.0, 0.0, 0.0);
         Vec3 specular(0.0, 0.0, 0.0);
 
@@ -104,16 +106,15 @@ Vec3 RayTracer::color(const Ray& r) {
             Ray shadowRay(light->getPosition(), -lightDir);
 
             for (const auto& shadowShape : scene.getShapes()) {
-                if (shadowShape == closestShape) continue; // Skip the shape that the shadow ray originated from
+                //if (shadowShape == closestShape) continue; // Skip the shape that the shadow ray originated from
 
-                if (shadowShape->intersect(shadowRay, shadowHit)) {
+                if (shadowShape->intersect(shadowRay, shadowHit, closestShape)) {
                     if ((shadowHit.location() - light->getPosition()).length() < lightDistance) {
                         inShadow = true;
                         break;
                     }
                 }
             }
-            
 
             // If not in shadow, compute and add illumination
             if (!inShadow) {
@@ -125,10 +126,34 @@ Vec3 RayTracer::color(const Ray& r) {
             }
         }
 
+        // Calculate the reflection
+        Vec3 reflectionColor = Vec3(0, 0, 0);
+        if (closestHit.material()->isreflective) {
+            Vec3 normal = closestHit.normal();
+            if (dot(normal, r.getDirection()) > 0) {
+                normal = -normal;  // Flip the normal
+            }
+            Vec3 reflectionDir = (r.getDirection() - 2 * dot(r.getDirection(), normal) * normal).make_normalised();
+            Vec3 offset = normal * 1e-4;  // Small offset to add to location
+            Ray reflectionRay(closestHit.location() + offset, reflectionDir.make_normalised());
+            reflectionColor = color(reflectionRay, depth + 1, closestShape);
+        }
+
+        if (closestHit.material()->isreflective) {
+            //return a combination of the reflection and the phong shading
+            //scaled as a ratio of the reflectivity of the material
+            Vec3 colorOut = (diffuse * closestHit.material()->kd +
+                            specular * closestHit.material()->ks +
+                            ambient * ka) * (1 - closestHit.material()->reflectivity) +
+                            reflectionColor * closestHit.material()->reflectivity;
+
+            return colorOut;
+        }
+
         // Combine ambient, diffuse, and specular components
         Vec3 colorOut = diffuse * closestHit.material()->kd +
-                    specular * closestHit.material()->ks +
-                    ambient * 0.1; //ambient coefficient is a constant
+                        specular * closestHit.material()->ks +
+                        ambient * ka;
 
         return colorOut;
     }
@@ -144,50 +169,47 @@ Vec3 RayTracer::color(const Ray& r) {
 
 
 int main() {
-    // Set up scene and rendering options.
+    /*
     RayTracer renderer;
-
-    //parseJson("imports/binary_primitives.json");
-
     Scene basicScene = Scene();
-
     Material material = Material( 0.1, 0.9, 10, Vec3(0.5, 1, 0.5),Vec3(1.0,1.0,1.0), false, 1.0, false, 1.0);
-
-    Camera cam = Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1, 4);
+    Camera cam = Camera(1200, 800, Vec3(0.0, 0, 0), Vec3(0.0, 0, 1.0), Vec3(0.0, 1.0, 0.0), 45.0, 0.1);
     renderer.setCamera(cam);
-
     basicScene.setBackgroundColor(Vec3(0.0, 0.0, 0.0));
-    basicScene.addShape(new Sphere(Vec3(0.0, 0.5, 1.0), 0.2, material));
-    basicScene.addShape(new Cylinder(Vec3(-0.5, -0.1, 1), Vec3(1.0, 0.0, 0.0), 0.15, 0.2, material));
-    basicScene.addShape(new Cylinder(Vec3(0.0, -0.1, 1), Vec3(0.0, 1.0, 0.0), 0.15, 0.2, material));
-    basicScene.addShape(new Cylinder(Vec3(0.5, -0.1, 1), Vec3(0.0, 0.0, 1.0), 0.15, 0.2, material));
-    basicScene.addShape(new Triangle(Vec3(0.0, 0.0, 1.0), Vec3(0.5, 0.0, 1.0), Vec3(0.25, 0.25, 1.0), material));
-
+    //basicScene.addShape(new Sphere(Vec3(0.0, 0.5, 1.0), 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(-0.4, -0.1, 1.3), Vec3(-1.0, 0.0, 0.0), 0.15, 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(0.0, -0.3, 1.3), Vec3(0.0, 0.0, -1.0), 0.15, 0.2, material));
+    basicScene.addShape(new Cylinder(Vec3(0.4, -0.1, 1.3), Vec3(0.0, 0.0, 1.0), 0.15, 0.2, material));
+    //basicScene.addShape(new Triangle(Vec3(0.0, 0.0, 1.5), Vec3(0.5, 0.0, 1.0), Vec3(0.25, 0.25, 1.0), material));
     basicScene.addLight(new Light(Vec3(0.0, 2.0, 0.0), Vec3(1.0, 1.0, 1.0)));
-
-    printf("Scene populated\n");
-
     renderer.setScene(basicScene);
     renderer.setRenderMode(PHONG);
-
     Vec3* image = renderer.RenderScene();
-    printf("Scene rendered\n");
-
-
     ImageWriter::writePPM("output.ppm", image, 1200, 800);
-    
+    delete[] image;
     printf("Image write finished\n");
+    */
 
+    
     RayTracer rayTracer = parseRender("imports/scene.json");
     rayTracer.setRenderMode(PHONG);
-    image = rayTracer.RenderScene();
-    ImageWriter::writePPM("scene.ppm", image, 1200, 800);
+    Vec3* image2 = rayTracer.RenderScene();
+    ImageWriter::writePPM("scene.ppm", image2, 1200, 800);
+    delete[] image2;
+    
+    /*
+    Vec3* image3 = parseRender("imports/binary_primitves.json").RenderScene();
+    ImageWriter::writePPM("binary_primitives.ppm", image3, 1200, 800);
+    delete[] image3;
+    */
 
-    image = parseRender("imports/binary_primitves.json").RenderScene();
-    ImageWriter::writePPM("binary_primitives.ppm", image, 1200, 800);
+    Vec3* image4 = parseRender("imports/simple_phong.json").RenderScene();
+    ImageWriter::writePPM("simple_phong.ppm", image4, 1200, 800);
+    delete[] image4;
 
-    image = parseRender("imports/simple_phong.json").RenderScene();
-    ImageWriter::writePPM("simple_phong.ppm", image, 1200, 800);
+    Vec3* image5 = parseRender("imports/mirror_image.json").RenderScene();
+    ImageWriter::writePPM("mirror_image.ppm", image5, 1200, 800); 
+    delete[] image5;
 
     return 0;
 }

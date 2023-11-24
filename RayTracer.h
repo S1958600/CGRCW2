@@ -21,6 +21,8 @@ private:
     Camera camera;
     RenderMode renderMode;
     int nbounces;
+    int samplesPP;
+    int maxDepth;
 
 public:
     RayTracer();
@@ -32,7 +34,7 @@ public:
     void setRenderMode(RenderMode renderMode);
 
     Vec3* RenderScene();
-    Vec3 color(const Ray& r);
+    Vec3 color(const Ray& r, int depth, Shape* ignoreShape);
 };
 
 #endif // RAYTRACER_H

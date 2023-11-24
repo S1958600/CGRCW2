@@ -11,7 +11,7 @@ public:
 
     ~Cylinder();
     
-    bool intersect(const Ray& ray, Hit& hit) const;
+    bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const;
 
 private:
     Vec3 center_;

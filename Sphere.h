@@ -15,7 +15,7 @@ public:
     virtual ~Sphere();
 
     // Method for ray-sphere intersection testing
-    virtual bool intersect(const Ray& ray, Hit& hit) const override;
+    virtual bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const override;
 
 private:
     Vec3 center_;  // Sphere center

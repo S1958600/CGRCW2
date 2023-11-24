@@ -14,7 +14,7 @@ public:
     virtual ~Shape();
 
     // Virtual method for ray intersection testing
-    virtual bool intersect(const Ray& ray, Hit& hit) const = 0;
+    virtual bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const = 0;
 
     // Getter for material properties
     const Material& getMaterial() const;

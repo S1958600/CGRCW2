@@ -4,7 +4,7 @@
 #include <cassert>
 
 Camera::Camera(const int width, const int height,const Vec3& position, const Vec3& lookAt, const Vec3& upVector, double fov, double exposure)
-    : width_(width), height_(height),position_(position), lookAt_(lookAt), upVector_(upVector), fov_(fov) {samples_ = 1;}
+    : width_(width), height_(height),position_(position), lookAt_(lookAt), upVector_(upVector), fov_(fov) {samples_ = 3;}
 
 Camera::Camera(const int width, const int height,const Vec3& position, const Vec3& lookAt, const Vec3& upVector, double fov, double exposure, int samples)
     : width_(width), height_(height),position_(position), lookAt_(lookAt), upVector_(upVector), fov_(fov), samples_(samples){}

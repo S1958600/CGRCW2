@@ -7,7 +7,9 @@ Triangle::Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, const Materia
 
 Triangle::~Triangle() {}
 
-bool Triangle::intersect(const Ray& ray, Hit& hit) const {
+bool Triangle::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
+    if (this == ignoreShape) {return false;}
+
     Vec3 e1 = v1_ - v0_;
     Vec3 e2 = v2_ - v0_;
 
