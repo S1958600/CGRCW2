@@ -32,9 +32,13 @@ public:
     void setScene(Scene& scene);
     void setCamera(Camera& camera);
     void setRenderMode(RenderMode renderMode);
+    void setSamplesPP(int samplesPP);
+    void setMaxDepth(int maxDepth);
 
     Vec3* RenderScene();
     Vec3 color(const Ray& r, int depth, Shape* ignoreShape);
+    void parseRenderWrite(const std::string& filename, RenderMode renderMode, int samplesPP, int maxDepth);
+
 };
 
 #endif // RAYTRACER_H
