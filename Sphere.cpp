@@ -13,36 +13,42 @@ Sphere::~Sphere() {}
 bool Sphere::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
     if(ignoreShape == this){return false;}
 
-    // Ray-sphere intersection algorithm
-    Vec3 oc = ray.getOrigin() - center_;
-    
-    double a = ray.getDirection().length_squared();
-    double half_b = dot(oc, ray.getDirection());
-    double c = oc.length_squared() - radius_ * radius_;
-    double discriminant = half_b * half_b - a * c;
-
-    // If the discriminant is non-negative, there is an intersection
-    if (discriminant >= 0) {
-        // Compute the parameter t at which the intersection occurs
-        double root = std::sqrt(discriminant);
-        double t1 = (-half_b - root) / a;
-        double t2 = (-half_b + root) / a;
-
-        // Choose the smallest positive t value
-        double t = (t1 > 0) ? t1 : t2;
-
-        // Calculate intersection point and normal
-        Vec3 intersectionPoint = ray.pointAtParameter(t);
-        Vec3 outward_normal = (intersectionPoint - center_) / radius_;
-
-        // Set Hit information
-        if(isCloser(t, hit)){
-            hit = Hit(true, t, intersectionPoint, outward_normal, &material_);
-            return true;
-        }
-        
+    Vec3 vectorToCenter = center_ - ray.getOrigin();
+    double projectionLength = dot(vectorToCenter, ray.getDirection());
+    if(projectionLength < 0){
+        return false;
     }
 
-    // No intersection
+    double distanceSquared = dot(vectorToCenter, vectorToCenter) - projectionLength * projectionLength;
+    if(distanceSquared < 0 || distanceSquared > radius_ * radius_){
+        return false;
+    }
+
+    double halfChordLength = std::sqrt(radius_ * radius_ - distanceSquared);
+    double t0 = projectionLength - halfChordLength;
+    double t1 = projectionLength + halfChordLength;
+
+    double intersectionDistance;
+    if(t0 < 1e-4 && t1 < 1e-4){
+        return false;
+    }else if(t0 < 1e-4){
+        intersectionDistance = t1;
+    }else if(t1 < 1e-4){
+        intersectionDistance = t0;
+    }else{
+        intersectionDistance = std::min(t0, t1);
+    }
+
+    Vec3 intersectionPoint = ray.getOrigin() + ray.getDirection() * intersectionDistance;
+    Vec3 outwardNormal = (intersectionPoint - center_).make_normalised();
+
+    // Move the intersection point slightly along the ray direction
+    intersectionPoint = intersectionPoint + ray.getDirection() * 1e-4;
+
+    if(isCloser(intersectionDistance, hit)){
+        hit = Hit(true, intersectionDistance, intersectionPoint, outwardNormal, &material_);
+        return true;
+    }
+
     return false;
 }
