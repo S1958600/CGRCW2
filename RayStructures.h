@@ -25,6 +25,8 @@ public:
     void setT(double t) { t_ = t; }
     void setShape(Shape* shape) { shape_ = shape; }
 
+    double u, v; //coordinates used for UV mapping
+
 
 private:
     bool hitOccurred_; // Indicates if a hit occurred

@@ -10,6 +10,7 @@ Material::Material() {
     reflectivity = 0.0f;
     isrefractive = false;
     refractiveindex = 0.0f;
+    texture_ = nullptr;
 }
 
 
@@ -22,4 +23,6 @@ Material::Material(double ks, double kd, double specexp,
     : ks(ks), kd(kd), specularexponent(specexp),
       diffusecolor(diffcolor), specularcolor(speccolor),
       isreflective(isrefl), reflectivity(reflcoeff),
-      isrefractive(isrefr), refractiveindex(refrindex) {}
+      isrefractive(isrefr), refractiveindex(refrindex) {
+          texture_ = nullptr;
+      }

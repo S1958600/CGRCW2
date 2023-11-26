@@ -17,7 +17,7 @@ public:
     virtual bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const = 0;
 
     // Getter for material properties
-    const Material& getMaterial() const;
+    Material& getMaterial();
 
     virtual void calculateBoundingBox() = 0;
 

@@ -10,7 +10,7 @@ Shape::~Shape() {}
 void Shape::calculateBoundingBox() {}
 
 // Getter for material properties
-const Material& Shape::getMaterial() const {
+Material& Shape::getMaterial() {
     return material_;
 }
 

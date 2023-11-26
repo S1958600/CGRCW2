@@ -13,6 +13,7 @@
 #include "Material.h"
 #include "RayTracer.h"
 #include "BVH.h"
+#include "Material.h"
 
 
 
@@ -109,7 +110,9 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
 
     else if (renderMode == PHONG){
         double ka = 0.3;
-        Vec3 ambient = Vec3(0.3,0.3,0.3) + (closestHit.material()->diffusecolor * 0.3);
+        Vec3 pValue = closestHit.location();
+        Vec3 diffuceBaseColor = closestHit.material()->getDiffuseColor(closestHit.u, closestHit.v, pValue);
+        Vec3 ambient = Vec3(0.3,0.3,0.3) + (diffuceBaseColor * 0.3);
         Vec3 diffuse(0.0, 0.0, 0.0);
         Vec3 specular(0.0, 0.0, 0.0);
 
@@ -141,7 +144,7 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
                 double diffuseFactor = dot(closestHit.normal(), lightDir);
                 Vec3 reflectDir = (lightDir - 2 * dot(lightDir, closestHit.normal()) * closestHit.normal()).make_normalised();
                 double specularFactor = pow(std::max(dot(reflectDir, -r.getDirection()), 0.0), closestHit.material()->specularexponent);
-                diffuse += closestHit.material()->diffusecolor * light->getIntensity() * std::max(diffuseFactor, 0.0);
+                diffuse += diffuceBaseColor * light->getIntensity() * std::max(diffuseFactor, 0.0);
                 specular += closestHit.material()->specularcolor * light->getIntensity() * specularFactor;
             }
         }
@@ -213,34 +216,83 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
 
 void RayTracer::parseRenderWrite(const std::string& filename, RenderMode renderMode, int samplesPP, int maxDepth) {
     std::string inputFilename = "imports/" + filename;
-    
-    printf("parsing\n");
     parseRender(inputFilename, *this);
 
-    printf("setting data\n");
+    
+    // Set the texture of the first shape in the scene
+    if (!this->scene.getShapes().empty()) {
+        Shape* firstShape = this->scene.getShapes()[0];
+        printf("shape found\n");
+        Material& material = firstShape->getMaterial();
+        printf("setting texture\n");
+        material.setTexture(new checkered(0.3, Vec3(0.1, 0.1, 0.1), Vec3(1, 0.8, 1)));
+    }
+    
     this->setRenderMode(renderMode);
     this->setSamplesPP(samplesPP);
     this->setMaxDepth(maxDepth);
-
-    printf("rendering\n");
     this->RenderScene();
-
-    printf("writing\n");
     std::string outputFilename = filename.substr(0, filename.find_last_of(".")) + ".ppm";
     ImageWriter::writePPM(outputFilename, this->RenderScene(), this->camera.getWidth(), this->camera.getHeight());
     //print the name of the image just written
-    printf("%s\n", filename.c_str());
-    }
+    printf("written %s\n", filename.c_str());
+}
 
 int main() {
 
-    RayTracer renderer;
-    renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 4);
+    /*
+    Camera camera = Camera(1200, 800, Vec3(0, 0, 0), Vec3(0, 0, 1), Vec3(0, 1, 0), 60, 1);
+    Scene scene = Scene();
+    scene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    scene.addLight(new Light(Vec3(5, 8, 2), Vec3(1, 1, 1)));
+    scene.addLight(new Light(Vec3(-5, 8, 1), Vec3(1, 1, 1)));
 
+    Material matRed = Material(0.5, 0.5, 100, Vec3(0.9, 0.5, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matGreen = Material(0.5, 0.5, 100, Vec3(0.5, 0.9, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matBlue = Material(0.5, 0.5, 100, Vec3(0.5, 0.5, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matWhite = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matBlack = Material(0.5, 0.5, 100, Vec3(0.1, 0.1, 0.1), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matPink = Material(0.5, 0.5, 100, Vec3(0.9, 0.5, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matYellow = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matOrange = Material(0.5, 0.5, 100, Vec3(0.9, 0.7, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matMirror = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), true, 1, false, 0);
+    Material matGlass = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, true, 1.5);
+    Material matCheckered = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, false, 0);
+    matCheckered.setTexture(new checkered(0.3, Vec3(0.1, 0.1, 0.1), Vec3(1, 0.8, 1)));
+
+    //floor
+    scene.addShape(new Triangle(Vec3(0,-3,-1), Vec3(-30, -3, 30), Vec3(30, -3, 30), matPink));
+
+    scene.addShape(new Sphere(Vec3(0, 0, 8), 1, matRed));
+    scene.addShape(new Sphere(Vec3(2.5, 0, 8), 1, matGreen));
+    scene.addShape(new Sphere(Vec3(-2.5, 0, 8), 1, matBlue));
+
+    scene.addShape(new Cylinder(Vec3(0, 3, 10), Vec3(0,0,1), 0.8, 1, matPink));
+    scene.addShape(new Cylinder(Vec3(2.5, 3, 10), Vec3(0,1,0), 0.8, 1, matRed));
+    scene.addShape(new Cylinder(Vec3(-2.5, 3, 10), Vec3(1,0,0), 0.8, 1, matOrange));
+
+    scene.addShape(new Triangle(Vec3(-1.5, -3, 6), Vec3(-2.5, -3, 6), Vec3(-2, -2, 8.1), matBlue));
+    scene.addShape(new Triangle(Vec3(2.5, -3, 6), Vec3(1.5, -3, 6), Vec3(2, -2, 8.1), matGreen));   
+    
+    //'sun'
+    scene.addShape(new Sphere(Vec3(0, 5, 45), 20, matYellow));
+
+    RayTracer renderer;
+    renderer.setScene(scene);
+    renderer.setCamera(camera);
+    renderer.setRenderMode(PHONG);
+    renderer.setSamplesPP(4);
+
+    ImageWriter::writePPM("demo.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+    */
+
+    /*
     renderer.parseRenderWrite("experiments.json", PHONG, 2, 8);
+    renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 4);
     renderer.parseRenderWrite("scene.json", PHONG, 1, 8);
     renderer.parseRenderWrite("simple_phong.json", PHONG, 1, 4);
     renderer.parseRenderWrite("mirror_image.json", PHONG, 2, 4);
 
+    */
     return 0;
 }

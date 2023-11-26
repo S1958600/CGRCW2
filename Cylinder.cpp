@@ -18,6 +18,20 @@ Vec3 Cylinder::getCenter() const {
     return center_;
 }
 
+void Cylinder::setUVCoordinates(const Vec3& intersectionPoint, Hit& hit) const {
+    Vec3 outwardNormal = (intersectionPoint - center_).make_normalised();
+
+    // Compute texture coordinates
+    double phi = atan2(outwardNormal.y(), outwardNormal.x());
+    double theta = asin(outwardNormal.z());
+    double u = 1 - (phi + M_PI) / (2 * M_PI);
+    double v = (theta + M_PI_2) / M_PI;
+
+    // Set texture coordinates
+    hit.u = u;
+    hit.v = v;
+}
+
 
 bool Cylinder::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
     if (this == ignoreShape) {return false;}

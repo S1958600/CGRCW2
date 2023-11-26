@@ -20,6 +20,21 @@ Vec3 Sphere::getCenter() const {
     return center_;
 }
 
+void Sphere::setUVCoordinates(const Vec3& intersectionPoint, Hit& hit) const {
+    Vec3 outwardNormal = (intersectionPoint - center_).make_normalised();
+
+    // Compute texture coordinates
+    double phi = atan2(outwardNormal.y(), outwardNormal.x());
+    double theta = asin(outwardNormal.z());
+    double u = 1 - (phi + M_PI) / (2 * M_PI);
+    double v = (theta + M_PI_2) / M_PI;
+
+    // Set texture coordinates
+    hit.u = u;
+    hit.v = v;
+}
+
+
 // Method for ray-sphere intersection testing
 bool Sphere::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
     if(ignoreShape == this){return false;}
@@ -58,6 +73,7 @@ bool Sphere::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
 
     if(isCloser(intersectionDistance, hit)){
         hit = Hit(true, intersectionDistance, intersectionPoint, outwardNormal, &material_);
+        setUVCoordinates(intersectionPoint, hit);
         hit.setShape(const_cast<Sphere*>(this));
         return true;
     }

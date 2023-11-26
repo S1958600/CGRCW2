@@ -5,6 +5,18 @@
 Triangle::Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, const Material& material)
     : Shape(material), v0_(v0), v1_(v1), v2_(v2), material_(material) {
         calculateBoundingBox();
+        // Compute the center of the triangle
+        Vec3 center = getCenter();
+
+        // Compute default UV coordinates as if the triangle was a plane
+        uv0_ = v0 - center;
+        uv1_ = v1 - center;
+        uv2_ = v2 - center;
+
+        // Set the z-component of the UV coordinates to 0
+        uv0_ = Vec3(uv0_.x(), uv0_.y(), 0);
+        uv1_ = Vec3(uv1_.x(), uv1_.y(), 0);
+        uv2_ = Vec3(uv2_.x(), uv2_.y(), 0);
     }
 
 
@@ -20,6 +32,17 @@ void Triangle::calculateBoundingBox() {
 
 Vec3 Triangle::getCenter() const {
     return (v0_ + v1_ + v2_) / 3.0;
+}
+
+void Triangle::setUVCoordinates(double u, double v, Hit& hit) const {
+    // Interpolate the texture coordinates using barycentric coordinates
+    double w = 1 - u - v;
+    double uCoord = u * uv0_.x() + v * uv1_.x() + w * uv2_.x();
+    double vCoord = u * uv0_.y() + v * uv1_.y() + w * uv2_.y();
+
+    // Set texture coordinates
+    hit.u = uCoord;
+    hit.v = vCoord;
 }
 
 bool Triangle::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
@@ -62,6 +85,7 @@ bool Triangle::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
     if (isCloser(tValue, hit)) {
         hit = Hit(true, tValue, intersectionPoint, outward_normal, &material_);
         hit.setShape(const_cast<Triangle*>(this));
+        setUVCoordinates(u, v, hit);
         return true;
     }
 

@@ -6,17 +6,15 @@
 
 class Sphere : public Shape {
 public:
-    // Constructor
-    //Sphere(const Vec3 center, double radius, const Material& material);
-
     Sphere(const Vec3 &center, double radius, const Material &material);
-    
-    // Destructor
     virtual ~Sphere();
 
     void calculateBoundingBox();
 
     Vec3 getCenter() const;
+
+    void setUVCoordinates(const Vec3& intersectionPoint, Hit& hit) const;
+
 
     // Method for ray-sphere intersection testing
     virtual bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const override;

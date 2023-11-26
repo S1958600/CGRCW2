@@ -14,6 +14,9 @@ public:
     void calculateBoundingBox();
 
     Vec3 getCenter() const;
+
+    void setUVCoordinates(const Vec3& intersectionPoint, Hit& hit) const;
+
     
     bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const;
 
