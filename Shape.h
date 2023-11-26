@@ -2,8 +2,8 @@
 #define SHAPE_H
 
 #include "Material.h"
-#include "RayStructures.h"       
-
+#include "RayStructures.h"
+#include "BoundingBox.h"
 
 class Shape {
 public:
@@ -18,6 +18,13 @@ public:
 
     // Getter for material properties
     const Material& getMaterial() const;
+
+    virtual void calculateBoundingBox() = 0;
+
+    virtual Vec3 getCenter() const = 0;
+
+    // Bounding box
+    BoundingBox bbox;
 
     bool isCloser(const double t, const Hit& hit) const {
         if (hit.t() <= 0) {

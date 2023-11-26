@@ -48,6 +48,9 @@ public:
     Vec3& operator*=(const double t);
     Vec3& operator/=(const double t);
     Vec3& operator=(const Vec3& other);
+    bool operator==(const Vec3& other) const {
+        return v[0] == other.v[0] && v[1] == other.v[1] && v[2] == other.v[2];
+    }
 
 
     double length() const;
@@ -59,7 +62,17 @@ public:
 
     //return a unit vector in the same direction as the current vector
     Vec3 make_normalised() const;
+
+    static Vec3 min(const Vec3& a, const Vec3& b) {
+        return Vec3(std::min(a.v[0], b.v[0]), std::min(a.v[1], b.v[1]), std::min(a.v[2], b.v[2]));
+    }
+
+    static Vec3 max(const Vec3& a, const Vec3& b) {
+        return Vec3(std::max(a.v[0], b.v[0]), std::max(a.v[1], b.v[1]), std::max(a.v[2], b.v[2]));
+    }
 };
+
+
 
 
 inline Vec3& Vec3::operator*=(const Vec3& v2) {

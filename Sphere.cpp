@@ -4,10 +4,21 @@
 
 // Constructor definition
 Sphere::Sphere(const Vec3& center, double radius, const Material& material)
-    : Shape(material), center_(center), radius_(radius) {}
+    : Shape(material), center_(center), radius_(radius) {
+        calculateBoundingBox();
+    }
 
 // Destructor definition
 Sphere::~Sphere() {}
+
+void Sphere::calculateBoundingBox() {
+    bbox.min = center_ - (Vec3(radius_, radius_, radius_) * 2);
+    bbox.max = center_ + (Vec3(radius_, radius_, radius_) * 2);
+}
+
+Vec3 Sphere::getCenter() const {
+    return center_;
+}
 
 // Method for ray-sphere intersection testing
 bool Sphere::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
@@ -47,6 +58,7 @@ bool Sphere::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
 
     if(isCloser(intersectionDistance, hit)){
         hit = Hit(true, intersectionDistance, intersectionPoint, outwardNormal, &material_);
+        hit.setShape(const_cast<Sphere*>(this));
         return true;
     }
 

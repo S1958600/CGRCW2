@@ -2,9 +2,21 @@
 #include <cmath>
 
 Cylinder::Cylinder(const Vec3& center, const Vec3& axis, double radius, double height, const Material& material)
-    : Shape(material), center_(center), axis_(axis), radius_(radius), height_(height), material_(material) {}
+    : Shape(material), center_(center), axis_(axis), radius_(radius), height_(height), material_(material) {
+        calculateBoundingBox();
+    }
 
 Cylinder::~Cylinder() {}
+
+void Cylinder::calculateBoundingBox() {
+    Vec3 radiusVec(radius_ * 2, radius_ * 2, height_ * 2);
+    bbox.min = center_ - radiusVec;
+    bbox.max = center_ + radiusVec;
+}
+
+Vec3 Cylinder::getCenter() const {
+    return center_;
+}
 
 
 bool Cylinder::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
@@ -49,6 +61,7 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
             // Check if the intersection point is closer than the previous closest hit
             if (isCloser(t, hit)){
                     hit = Hit(true, t, intersectionPoint, outward_normal, &material_);
+                    hit.setShape(const_cast<Cylinder*>(this));
                     hitSomething = true;
             }
         }
@@ -65,6 +78,7 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
         Vec3 outward_normal = axis_;
         if (isCloser(t_top_cap, hit)) {
             hit = Hit(true, t_top_cap, top_cap_intersection, outward_normal, &material_);
+            hit.setShape(const_cast<Cylinder*>(this));
             hitSomething = true;
         }
     }
@@ -75,6 +89,7 @@ bool Cylinder::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
         if (isCloser(t_bottom_cap, hit)) {
             hitSomething = true;    
             hit = Hit(true, t_bottom_cap, bottom_cap_intersection, outward_normal, &material_);
+            hit.setShape(const_cast<Cylinder*>(this));
         }
     }
     return hitSomething;

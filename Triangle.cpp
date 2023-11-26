@@ -1,11 +1,26 @@
 #include "Triangle.h"
+#include "Vec3.h"
 #include <cmath>
 
 Triangle::Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, const Material& material)
-    : Shape(material), v0_(v0), v1_(v1), v2_(v2), material_(material) {}
+    : Shape(material), v0_(v0), v1_(v1), v2_(v2), material_(material) {
+        calculateBoundingBox();
+    }
 
 
 Triangle::~Triangle() {}
+
+void Triangle::calculateBoundingBox() {
+    double offset = 0.0001;  // Define an offset
+    bbox.min = Vec3::min(v0_, Vec3::min(v1_, v2_)) - Vec3(offset, offset, offset);  
+    // Subtract the offset from the minimum coordinates
+    bbox.max = Vec3::max(v0_, Vec3::max(v1_, v2_)) + Vec3(offset, offset, offset);  
+    // Add the offset to the maximum coordinates
+}
+
+Vec3 Triangle::getCenter() const {
+    return (v0_ + v1_ + v2_) / 3.0;
+}
 
 bool Triangle::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
     if (this == ignoreShape) {return false;}
@@ -46,6 +61,7 @@ bool Triangle::intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const {
     
     if (isCloser(tValue, hit)) {
         hit = Hit(true, tValue, intersectionPoint, outward_normal, &material_);
+        hit.setShape(const_cast<Triangle*>(this));
         return true;
     }
 

@@ -14,6 +14,10 @@ public:
     // Destructor
     virtual ~Sphere();
 
+    void calculateBoundingBox();
+
+    Vec3 getCenter() const;
+
     // Method for ray-sphere intersection testing
     virtual bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const override;
 

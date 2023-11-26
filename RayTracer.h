@@ -8,6 +8,7 @@
 #include "ImageWriter.h"
 #include "Scene.h"
 #include "Material.h"
+#include "BVH.h"
 
 enum RenderMode {
     BINARY,
@@ -23,6 +24,7 @@ private:
     int nbounces;
     int samplesPP;
     int maxDepth;
+    BVH bvh;
 
 public:
     RayTracer();
@@ -34,6 +36,7 @@ public:
     void setRenderMode(RenderMode renderMode);
     void setSamplesPP(int samplesPP);
     void setMaxDepth(int maxDepth);
+    void setBVH(BVH bvh);
 
     Vec3* RenderScene();
     Vec3 color(const Ray& r, int depth, Shape* ignoreShape);

@@ -9,6 +9,10 @@ public:
     Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, const Material& material);
     ~Triangle();
 
+    void calculateBoundingBox();
+
+    Vec3 getCenter() const;
+
     bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const override;
 
 private:

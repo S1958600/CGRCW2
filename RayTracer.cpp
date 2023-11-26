@@ -12,6 +12,7 @@
 #include "Scene.h"
 #include "Material.h"
 #include "RayTracer.h"
+#include "BVH.h"
 
 
 
@@ -43,11 +44,16 @@ void RayTracer::setMaxDepth(int maxDepth) {
     this->maxDepth = maxDepth;
 }
 
+void RayTracer::setBVH(BVH bvh) {
+    this->bvh = bvh;
+}
+
 
 Vec3* RayTracer::RenderScene() {
     camera.setSamples(samplesPP);
-    // Generate a list of Ray objects
     Ray* rays = camera.generateAllRays();
+
+    setBVH(BVH(scene.getShapes())); //set up bvh for the scene
 
     // Create a list of Color objects to store the color of each pixel
     Vec3* image = new Vec3[camera.getHeight() * camera.getWidth()];
@@ -69,39 +75,6 @@ Vec3* RayTracer::RenderScene() {
     return image;
 }
 
-double clamp(double min, double max, double value) {
-    if (value < min) {
-        return min;
-    } else if (value > max) {
-        return max;
-    } else {
-        return value;
-    }
-}
-
-void fresnel(const Vec3 &I, const Vec3 &N, const float &ior, float &kr)
-{
-    float cosi = clamp(-1, 1, dot(I, N));
-    float etai = 1, etat = ior;
-    if (cosi > 0) { std::swap(etai, etat); }
-    // Compute sini using Snell's law
-    float sint = etai / etat * sqrtf(std::max(0.f, 1 - cosi * cosi));
-    // Total internal reflection
-    if (sint >= 1) {
-        kr = 1;
-    }
-    else {
-        float cost = sqrtf(std::max(0.f, 1 - sint * sint));
-        cosi = fabsf(cosi);
-        float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-        float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-        kr = (Rs * Rs + Rp * Rp) / 2;
-    }
-    // As a consequence of the conservation of energy, the transmittance is given by:
-    // kt = 1 - kr;
-}
-
-
 Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
     // If the ray has bounced too many times, no more light is gathered
     if (depth > maxDepth) return scene.getBackgroundColor();
@@ -109,6 +82,12 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
     Hit closestHit;
     Shape* closestShape = nullptr;
 
+    /*
+    closestHit = bvh.getIntersect(r, bvh.root);
+    closestShape = closestHit.shape();
+    if (closestHit.t() < 0) {return scene.getBackgroundColor();} //no hit
+    */
+    
     // Find the closest shape that intersects with the ray
     for (const auto& shape : scene.getShapes()) {
         if (shape == ignoreShape) continue;  // Skip the current shape
@@ -121,7 +100,6 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
             }
         }
     }
-
     // If no shape intersects with the ray, return the background color
     if (closestShape == nullptr) {return scene.getBackgroundColor();}
 
@@ -139,7 +117,7 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
         for (const auto& light : scene.getLights()) {
             // Calculate light direction and distance
             Vec3 lightDir = (light->getPosition() - closestHit.location()).make_normalised();
-            float lightDistance = (light->getPosition() - closestHit.location()).length();
+            double lightDistance = (light->getPosition() - closestHit.location()).length();
 
             // Check if the point is in shadow (i.e., blocked by another object)
             bool inShadow = false;
@@ -175,7 +153,7 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
             Vec3 normDir = r.getDirection().make_normalised();
 
             Vec3 reflectionDir = (normDir - 2.0f * dot(normDir, normal) * normal).make_normalised();
-            Vec3 offset = normal * 1e-2;  // Small offset to add to location
+            Vec3 offset = normal * 1e-3;  // Small offset to add to location
             Ray reflectionRay(closestHit.location() + offset, reflectionDir);
             reflectionColor = color(reflectionRay, depth + 1, closestShape);
         }
@@ -184,26 +162,26 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
         Vec3 refractionColor = Vec3(0, 0, 0);
         if (closestHit.material()->isrefractive) {
             Vec3 normal = closestHit.normal().make_normalised();
-            Vec3 normDir = r.getDirection().make_normalised();
-            double eta = closestHit.material()->refractiveindex;
-
-            // Check if the ray is inside the object to invert the normal and invert the refractive index
-            if (dot(normDir, normal) > 0) {
+            Vec3 ray_dir = (closestHit.location() - r.getOrigin()).make_normalised();
+            double n1 = 1.f;
+            double n2 = closestHit.material()->refractiveindex;
+            if(r.isInside()){
+                std::swap(n1,n2);
                 normal = -normal;
-                eta = 1 / eta;
             }
-
-            double cosThetaI = -dot(normDir, normal);
-            double sin2ThetaT = eta * eta * (1.0 - cosThetaI * cosThetaI);
-
-            // Total internal reflection, no refraction
-            if (sin2ThetaT > 1.0) {
-                refractionColor = Vec3(0, 0, 0);
-            } else {
-                Vec3 refractionDir = eta * normDir + (eta * cosThetaI - sqrt(1.0 - sin2ThetaT)) * normal;
-                Vec3 offset = -normal * 1e-2;  // Small offset to subtract from location
-                Ray refractionRay(closestHit.location() + offset, refractionDir);
-                refractionColor = color(refractionRay, depth + 1, closestShape);
+            double cosi = dot(-normal, ray_dir);
+            double n = n1 / n2;
+            double k = 1.f - n * n * (1.f - cosi * cosi);
+            if(k >= 0.f){
+                // The refraction
+                Vec3 refractionDir = (n * -ray_dir + (n * cosi - std::sqrt(k)) * normal).make_normalised();
+                Ray refract_ray(closestHit.location(), refractionDir, !r.isInside());
+                refractionColor = color(refract_ray, depth + 1, closestShape);
+            }else{
+                // The internal reflection
+                Vec3 reflect_dir = (2.f * dot(normal, ray_dir) * normal - ray_dir).make_normalised();
+                Ray reflect_ray(closestHit.location(), reflect_dir, r.isInside());
+                refractionColor = color(reflect_ray, depth+1, closestShape);
             }
         }
 
@@ -212,23 +190,16 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
                         specular * closestHit.material()->ks +
                         ambient * ka;
 
-        // Add reflection and refraction
-        if (closestHit.material()->isreflective || closestHit.material()->isrefractive) {
-            if (closestHit.material()->isreflective && closestHit.material()->isrefractive) {
-                // Fresnel effect: the amount of reflection and refraction depends on the angle of incidence
-                float kr;
-                fresnel(r.getDirection(), closestHit.normal(), closestHit.material()->refractiveindex, kr);
-
-                // Combine reflection and refraction based on Fresnel
-                colorOut = colorOut * (1 - kr) + (reflectionColor * kr + refractionColor * (1 - kr));
-            } else if (closestHit.material()->isreflective) {
-                // Only reflective
-                colorOut = colorOut * (1 - closestHit.material()->reflectivity) + reflectionColor * closestHit.material()->reflectivity;
-            } else if (closestHit.material()->isrefractive) {
-                // Only refractive
-                colorOut = colorOut + refractionColor;
-            }
+        if (closestHit.material()->isrefractive) {
+            // Only refractive
+            colorOut = refractionColor;
         }
+
+        if (closestHit.material()->isreflective) {
+            // Only reflective
+            colorOut = colorOut * (1 - closestHit.material()->reflectivity) + reflectionColor * closestHit.material()->reflectivity;
+        }
+
 
         return colorOut;
     }
@@ -264,9 +235,10 @@ void RayTracer::parseRenderWrite(const std::string& filename, RenderMode renderM
 int main() {
 
     RayTracer renderer;
-    renderer.parseRenderWrite("experiments.json", PHONG, 1, 8);
-    renderer.parseRenderWrite("scene.json", PHONG, 1, 8);
     renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 4);
+
+    renderer.parseRenderWrite("experiments.json", PHONG, 2, 8);
+    renderer.parseRenderWrite("scene.json", PHONG, 1, 8);
     renderer.parseRenderWrite("simple_phong.json", PHONG, 1, 4);
     renderer.parseRenderWrite("mirror_image.json", PHONG, 2, 4);
 

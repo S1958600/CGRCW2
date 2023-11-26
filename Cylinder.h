@@ -10,6 +10,10 @@ public:
     Cylinder(const Vec3& center, const Vec3& axis, double radius, double height, const Material& material);
 
     ~Cylinder();
+
+    void calculateBoundingBox();
+
+    Vec3 getCenter() const;
     
     bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const;
 
