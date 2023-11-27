@@ -240,51 +240,140 @@ void RayTracer::parseRenderWrite(const std::string& filename, RenderMode renderM
 
 int main() {
 
-    /*
+    
     Camera camera = Camera(1200, 800, Vec3(0, 0, 0), Vec3(0, 0, 1), Vec3(0, 1, 0), 60, 1);
-    Scene scene = Scene();
-    scene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
-    scene.addLight(new Light(Vec3(5, 8, 2), Vec3(1, 1, 1)));
-    scene.addLight(new Light(Vec3(-5, 8, 1), Vec3(1, 1, 1)));
 
-    Material matRed = Material(0.5, 0.5, 100, Vec3(0.9, 0.5, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matGreen = Material(0.5, 0.5, 100, Vec3(0.5, 0.9, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matBlue = Material(0.5, 0.5, 100, Vec3(0.5, 0.5, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matWhite = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matBlack = Material(0.5, 0.5, 100, Vec3(0.1, 0.1, 0.1), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matPink = Material(0.5, 0.5, 100, Vec3(0.9, 0.5, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matYellow = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
-    Material matOrange = Material(0.5, 0.5, 100, Vec3(0.9, 0.7, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    //materials
+    Material matRed = Material(0.3, 0.7, 50, Vec3(0.9, 0.5, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matGreen = Material(0.6, 0.4, 120, Vec3(0.5, 0.9, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matBlue = Material(0.5, 0.5, 80, Vec3(0.5, 0.5, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matWhite = Material(0.7, 0.3, 150, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matBlack = Material(0.4, 0.6, 60, Vec3(0.1, 0.1, 0.1), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matPink = Material(0.6, 0.4, 100, Vec3(0.9, 0.5, 0.9), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matYellow = Material(0.5, 0.5, 70, Vec3(0.9, 0.9, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
+    Material matOrange = Material(0.4, 0.6, 90, Vec3(0.9, 0.7, 0.5), Vec3(1, 1, 1), false, 0.5, false, 0);
     Material matMirror = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), true, 1, false, 0);
     Material matGlass = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, true, 1.5);
+    Material matDiamond = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, true, 2.4);
     Material matCheckered = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, false, 0);
-    matCheckered.setTexture(new checkered(0.3, Vec3(0.1, 0.1, 0.1), Vec3(1, 0.8, 1)));
+    matCheckered.setTexture(new checkered(2.5, Vec3(0.8, 0.8, 1), Vec3(1, 0.8, 1)));
+
+    //scene for demonstrating properties
+    Scene demoScene = Scene();
+    demoScene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    //demoScene.addLight(new Light(Vec3(5, 8, 2), Vec3(1, 1, 1)));
+    //demoScene.addLight(new Light(Vec3(-5, 8, 1), Vec3(1, 1, 1)));
+
+    demoScene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    demoScene.addLight(new Light(Vec3(5, 8, 2), Vec3(1, 0, 0)));
+    demoScene.addLight(new Light(Vec3(5.1, 8.1, 2), Vec3(0, 1, 0)));
+    demoScene.addLight(new Light(Vec3(5.2, 8.2, 2), Vec3(0, 0, 1)));
+
+    demoScene.addLight(new Light(Vec3(-5, 8, 1), Vec3(0, 0, 1)));
+    demoScene.addLight(new Light(Vec3(-5.1, 8.1, 1), Vec3(0, 1, 0)));
+    demoScene.addLight(new Light(Vec3(-5.2, 8.2, 1), Vec3(1, 0, 0)));
 
     //floor
-    scene.addShape(new Triangle(Vec3(0,-3,-1), Vec3(-30, -3, 30), Vec3(30, -3, 30), matPink));
+    demoScene.addShape(new Triangle(Vec3(0,-3,-1), Vec3(-30, -3, 30), Vec3(30, -3, 30), matPink));
 
-    scene.addShape(new Sphere(Vec3(0, 0, 8), 1, matRed));
-    scene.addShape(new Sphere(Vec3(2.5, 0, 8), 1, matGreen));
-    scene.addShape(new Sphere(Vec3(-2.5, 0, 8), 1, matBlue));
+    //focus of the scene
+    demoScene.addShape(new Sphere(Vec3(0, 0, 8), 1, matRed));
+    demoScene.addShape(new Sphere(Vec3(2.5, 0, 8), 1, matGreen));
+    demoScene.addShape(new Sphere(Vec3(-2.5, 0, 8), 1, matBlue));
 
-    scene.addShape(new Cylinder(Vec3(0, 3, 10), Vec3(0,0,1), 0.8, 1, matPink));
-    scene.addShape(new Cylinder(Vec3(2.5, 3, 10), Vec3(0,1,0), 0.8, 1, matRed));
-    scene.addShape(new Cylinder(Vec3(-2.5, 3, 10), Vec3(1,0,0), 0.8, 1, matOrange));
+    demoScene.addShape(new Cylinder(Vec3(0, 3, 10), Vec3(0,0,1), 0.8, 1, matPink));
+    demoScene.addShape(new Cylinder(Vec3(2.5, 3, 10), Vec3(0,1,0), 0.8, 1, matRed));
+    demoScene.addShape(new Cylinder(Vec3(-2.5, 3, 10), Vec3(1,0,0), 0.8, 1, matOrange));
 
-    scene.addShape(new Triangle(Vec3(-1.5, -3, 6), Vec3(-2.5, -3, 6), Vec3(-2, -2, 8.1), matBlue));
-    scene.addShape(new Triangle(Vec3(2.5, -3, 6), Vec3(1.5, -3, 6), Vec3(2, -2, 8.1), matGreen));   
-    
+    demoScene.addShape(new Triangle(Vec3(-1.5, -3, 6), Vec3(-2.5, -3, 6), Vec3(-2, -2, 8.1), matBlue));
+    demoScene.addShape(new Triangle(Vec3(2.5, -3, 6), Vec3(1.5, -3, 6), Vec3(2, -2, 8.1), matGreen));   
+
     //'sun'
-    scene.addShape(new Sphere(Vec3(0, 5, 45), 20, matYellow));
+    demoScene.addShape(new Sphere(Vec3(0, 5, 45), 20, matYellow));
 
     RayTracer renderer;
-    renderer.setScene(scene);
+    renderer.setScene(demoScene);
     renderer.setCamera(camera);
     renderer.setRenderMode(PHONG);
     renderer.setSamplesPP(4);
 
-    ImageWriter::writePPM("demo.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
-    */
+    //ImageWriter::writePPM("demo.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+
+
+
+    //scene for demonstrating video
+    Scene videoScene = Scene();
+
+    videoScene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    videoScene.addLight(new Light(Vec3(10, 8, 10), Vec3(1, 0, 0)));
+    videoScene.addLight(new Light(Vec3(10.1, 8, 10.1), Vec3(0, 1, 0)));
+    videoScene.addLight(new Light(Vec3(10.2, 8, 10.2), Vec3(0, 0, 1)));
+
+    videoScene.addLight(new Light(Vec3(-10, 8, -10), Vec3(0, 0, 1)));
+    videoScene.addLight(new Light(Vec3(-10.1, 8, -10.1), Vec3(0, 1, 0)));
+    videoScene.addLight(new Light(Vec3(-10.2, 8, -10.2), Vec3(1, 0, 0)));
+
+    //floor
+    videoScene.addShape(new Triangle(Vec3(-30,0,-30), Vec3(-30, 0, 30), Vec3(30, 0, 30), matCheckered));
+    videoScene.addShape(new Triangle(Vec3(-30,0,-30), Vec3(30,0, 30), Vec3(30, 0, -30), matCheckered));
+
+    //marbles on the floor
+    videoScene.addShape(new Sphere(Vec3(-20, 0.5, 2.5), 0.5, matRed));
+    videoScene.addShape(new Sphere(Vec3(-20, 1, 14), 1, matRed));
+    videoScene.addShape(new Sphere(Vec3(-16, 1.5, -5), 1.5, matGreen));
+    videoScene.addShape(new Sphere(Vec3(-14, 1.5, 12), 1.5, matBlue));
+    videoScene.addShape(new Sphere(Vec3(-11, 0.5, -8), 0.5, matPink));
+    videoScene.addShape(new Sphere(Vec3(-10, 1, 16), 1, matGreen));
+    videoScene.addShape(new Sphere(Vec3(-6, 1.5, -12), 1.5, matWhite));
+    videoScene.addShape(new Sphere(Vec3(-4, 0.5, 3), 0.5, matMirror));
+    videoScene.addShape(new Sphere(Vec3(-4, 1.5, -13), 1.5, matOrange));
+    videoScene.addShape(new Sphere(Vec3(3, 0.5, 12), 0.5, matBlue));
+    videoScene.addShape(new Sphere(Vec3(5, 0.5, -16), 0.5, matBlack));
+    videoScene.addShape(new Sphere(Vec3(9, 1, 4), 1, matOrange));
+    videoScene.addShape(new Sphere(Vec3(9, 1.5, -9), 1.5, matYellow));
+    videoScene.addShape(new Sphere(Vec3(12, 2, 4), 2, matGlass));
+    videoScene.addShape(new Sphere(Vec3(-15, 2.3, -10), 2.3, matDiamond));
+    videoScene.addShape(new Sphere(Vec3(17, 2, -8), 2, matGlass));
+    videoScene.addShape(new Sphere(Vec3(19, 1, 8), 1, matPink));
+
+
+    videoScene.addShape(new Cylinder(Vec3(0, 1.5, 0), Vec3(0,1,0), 2, 3, matMirror)); // Bottom right corner
+
+
+    Camera videoCamera = Camera(1200, 800, Vec3(0, 10, -20), Vec3(0, -1, 1), Vec3(0, 1, 0), 60, 1);
+
+    renderer.setScene(videoScene);
+    renderer.setCamera(videoCamera);
+    renderer.setSamplesPP(1);
+
+    ImageWriter::writePPM("video.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+
+    // Number of frames
+    int numFrames = 100;
+
+    // Radius of the camera's circular path
+    double radius = 20;
+
+    // Angle step per frame
+    double angleStep = 2 * M_PI / numFrames;
+
+    for (int i = 0; i < numFrames; i++) {
+        // Calculate the camera's position on the circular path
+        double angle = i * angleStep;
+        Vec3 cameraPosition(radius * cos(angle), 10, radius * sin(angle));
+
+        // Create a camera that looks at the origin
+        Camera videoCamera = Camera(1200, 800, cameraPosition, Vec3(0, 0, 0), Vec3(0, 1, 0), 45, 1);
+
+        // Set the scene and camera
+        renderer.setScene(videoScene);
+        renderer.setCamera(videoCamera);
+        renderer.setSamplesPP(3);
+
+        // Render the scene and write it to a file
+        std::string filename = "outputs/frame" + std::to_string(i) + ".ppm";
+        ImageWriter::writePPM(filename, renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+    }
 
     /*
     renderer.parseRenderWrite("experiments.json", PHONG, 2, 8);
