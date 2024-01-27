@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include "ImportParser.h"
 #include "RayStructures.h"
@@ -83,6 +84,7 @@ Vec3 RayTracer::color(const Ray& r, int depth, Shape* ignoreShape) {
     Hit closestHit;
     Shape* closestShape = nullptr;
 
+    //Code for using bvh instead of standard intersect. Not functional
     /*
     closestHit = bvh.getIntersect(r, bvh.root);
     closestShape = closestHit.shape();
@@ -218,7 +220,8 @@ void RayTracer::parseRenderWrite(const std::string& filename, RenderMode renderM
     std::string inputFilename = "imports/" + filename;
     parseRender(inputFilename, *this);
 
-    
+    //testing textures
+    /*
     // Set the texture of the first shape in the scene
     if (!this->scene.getShapes().empty()) {
         Shape* firstShape = this->scene.getShapes()[0];
@@ -227,6 +230,7 @@ void RayTracer::parseRenderWrite(const std::string& filename, RenderMode renderM
         printf("setting texture\n");
         material.setTexture(new checkered(0.3, Vec3(0.1, 0.1, 0.1), Vec3(1, 0.8, 1)));
     }
+    */
     
     this->setRenderMode(renderMode);
     this->setSamplesPP(samplesPP);
@@ -240,6 +244,31 @@ void RayTracer::parseRenderWrite(const std::string& filename, RenderMode renderM
 
 int main() {
 
+    //renders output images for the given json files
+    
+    RayTracer renderer;
+    /*
+    renderer.parseRenderWrite("cluttered_scene.json", PHONG, 2, 8);
+    renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 4);
+    renderer.parseRenderWrite("scene.json", PHONG, 1, 8);
+    renderer.parseRenderWrite("simple_phong.json", PHONG, 1, 4);
+    renderer.parseRenderWrite("mirror_image.json", PHONG, 2, 4);
+    */
+
+    std::string path = "imports";
+    for (const auto & entry : std::filesystem::directory_iterator(path)) {
+        std::string filename = entry.path().filename().string();
+        std::cout << "Processing file: " << filename << std::endl;
+        renderer.parseRenderWrite(filename, PHONG, 1, 8);
+        std::cout << "Finished processing file: " << filename << std::endl;
+    }
+    printf("rendered all imports, moving onto self defined scenes\n");
+
+    //to produce the images for the report
+    //renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 8);
+    //renderer.parseRenderWrite("scene.json", BINARY, 1, 8);
+
+    //much easier to edit a scene in code than in json
     
     Camera camera = Camera(1200, 800, Vec3(0, 0, 0), Vec3(0, 0, 1), Vec3(0, 1, 0), 60, 1);
 
@@ -255,16 +284,19 @@ int main() {
     Material matMirror = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), true, 1, false, 0);
     Material matGlass = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, true, 1.5);
     Material matDiamond = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, true, 2.4);
+    Material matWater = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, true, 1.33);
     Material matCheckered = Material(0.5, 0.5, 100, Vec3(0.9, 0.9, 0.9), Vec3(1, 1, 1), false, 0, false, 0);
     matCheckered.setTexture(new checkered(2.5, Vec3(0.8, 0.8, 1), Vec3(1, 0.8, 1)));
 
     //scene for demonstrating properties
     Scene demoScene = Scene();
     demoScene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    //boring lights
     //demoScene.addLight(new Light(Vec3(5, 8, 2), Vec3(1, 1, 1)));
     //demoScene.addLight(new Light(Vec3(-5, 8, 1), Vec3(1, 1, 1)));
 
     demoScene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    //seperate lights into individual colours to make cool shadows
     demoScene.addLight(new Light(Vec3(5, 8, 2), Vec3(1, 0, 0)));
     demoScene.addLight(new Light(Vec3(5.1, 8.1, 2), Vec3(0, 1, 0)));
     demoScene.addLight(new Light(Vec3(5.2, 8.2, 2), Vec3(0, 0, 1)));
@@ -277,46 +309,41 @@ int main() {
     demoScene.addShape(new Triangle(Vec3(0,-3,-1), Vec3(-30, -3, 30), Vec3(30, -3, 30), matPink));
 
     //focus of the scene
-    demoScene.addShape(new Sphere(Vec3(0, 0, 8), 1, matRed));
-    demoScene.addShape(new Sphere(Vec3(2.5, 0, 8), 1, matGreen));
-    demoScene.addShape(new Sphere(Vec3(-2.5, 0, 8), 1, matBlue));
+    demoScene.addShape(new Sphere(Vec3(0, 0, 8), 1, matGlass));
+    demoScene.addShape(new Sphere(Vec3(2.5, 0, 8), 1, matDiamond));
+    demoScene.addShape(new Sphere(Vec3(-2.5, 0, 8), 1, matWater));
 
-    demoScene.addShape(new Cylinder(Vec3(0, 3, 10), Vec3(0,0,1), 0.8, 1, matPink));
-    demoScene.addShape(new Cylinder(Vec3(2.5, 3, 10), Vec3(0,1,0), 0.8, 1, matRed));
-    demoScene.addShape(new Cylinder(Vec3(-2.5, 3, 10), Vec3(1,0,0), 0.8, 1, matOrange));
+    demoScene.addShape(new Cylinder(Vec3(0, 3, 10), Vec3(0,0,1), 0.8, 1, matGlass));
+    demoScene.addShape(new Cylinder(Vec3(2.5, 3, 10), Vec3(0,1,0), 0.8, 1, matBlue));
+    demoScene.addShape(new Cylinder(Vec3(-2.5, 3, 10), Vec3(1,0,0), 0.8, 1, matRed));
 
-    demoScene.addShape(new Triangle(Vec3(-1.5, -3, 6), Vec3(-2.5, -3, 6), Vec3(-2, -2, 8.1), matBlue));
-    demoScene.addShape(new Triangle(Vec3(2.5, -3, 6), Vec3(1.5, -3, 6), Vec3(2, -2, 8.1), matGreen));   
+    demoScene.addShape(new Triangle(Vec3(-1.5, -3, 6), Vec3(-2.5, -3, 6), Vec3(-2, -2, 8.1), matDiamond));
+    demoScene.addShape(new Triangle(Vec3(2.5, -3, 6), Vec3(1.5, -3, 6), Vec3(2, -2, 8.1), matGlass));   
 
-    //'sun'
-    demoScene.addShape(new Sphere(Vec3(0, 5, 45), 20, matYellow));
+    demoScene.addShape(new Sphere(Vec3(0, 5, 45), 20, matYellow));  //'sun'
 
-    RayTracer renderer;
     renderer.setScene(demoScene);
     renderer.setCamera(camera);
     renderer.setRenderMode(PHONG);
     renderer.setSamplesPP(4);
 
-    //ImageWriter::writePPM("demo.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+    ImageWriter::writePPM("demo.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
 
-
-
-    //scene for demonstrating video
+    /*
+    //scene for video
     Scene videoScene = Scene();
-
     videoScene.setBackgroundColor(Vec3(0.7, 0.5, 0.7));
+    //first light
     videoScene.addLight(new Light(Vec3(10, 8, 10), Vec3(1, 0, 0)));
     videoScene.addLight(new Light(Vec3(10.1, 8, 10.1), Vec3(0, 1, 0)));
     videoScene.addLight(new Light(Vec3(10.2, 8, 10.2), Vec3(0, 0, 1)));
-
+    //second light
     videoScene.addLight(new Light(Vec3(-10, 8, -10), Vec3(0, 0, 1)));
     videoScene.addLight(new Light(Vec3(-10.1, 8, -10.1), Vec3(0, 1, 0)));
     videoScene.addLight(new Light(Vec3(-10.2, 8, -10.2), Vec3(1, 0, 0)));
-
     //floor
     videoScene.addShape(new Triangle(Vec3(-30,0,-30), Vec3(-30, 0, 30), Vec3(30, 0, 30), matCheckered));
     videoScene.addShape(new Triangle(Vec3(-30,0,-30), Vec3(30,0, 30), Vec3(30, 0, -30), matCheckered));
-
     //marbles on the floor
     videoScene.addShape(new Sphere(Vec3(-20, 0.5, 2.5), 0.5, matRed));
     videoScene.addShape(new Sphere(Vec3(-20, 1, 14), 1, matRed));
@@ -335,28 +362,19 @@ int main() {
     videoScene.addShape(new Sphere(Vec3(-15, 2.3, -10), 2.3, matDiamond));
     videoScene.addShape(new Sphere(Vec3(17, 2, -8), 2, matGlass));
     videoScene.addShape(new Sphere(Vec3(19, 1, 8), 1, matPink));
-
-
     videoScene.addShape(new Cylinder(Vec3(0, 1.5, 0), Vec3(0,1,0), 2, 3, matMirror)); // Bottom right corner
-
-
     Camera videoCamera = Camera(1200, 800, Vec3(0, 10, -20), Vec3(0, -1, 1), Vec3(0, 1, 0), 60, 1);
-
     renderer.setScene(videoScene);
     renderer.setCamera(videoCamera);
     renderer.setSamplesPP(1);
-
-    ImageWriter::writePPM("video.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
-
-    // Number of frames
+    //generates one frame of the scene
+    //ImageWriter::writePPM("video.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+    
     int numFrames = 100;
-
     // Radius of the camera's circular path
     double radius = 20;
-
     // Angle step per frame
     double angleStep = 2 * M_PI / numFrames;
-
     for (int i = 0; i < numFrames; i++) {
         // Calculate the camera's position on the circular path
         double angle = i * angleStep;
@@ -365,23 +383,25 @@ int main() {
         // Create a camera that looks at the origin
         Camera videoCamera = Camera(1200, 800, cameraPosition, Vec3(0, 0, 0), Vec3(0, 1, 0), 45, 1);
 
+        // Rotate each sphere around the origin
+        for (Shape* shape : videoScene.getShapes()) {
+            Sphere* sphere = dynamic_cast<Sphere*>(shape);
+            if (sphere) {
+                Vec3 oldPosition = sphere->getCenter();
+                double x = oldPosition.x() * cos(-angleStep) - oldPosition.z() * sin(-angleStep);
+                double z = oldPosition.x() * sin(-angleStep) + oldPosition.z() * cos(-angleStep);
+                sphere->setCenter(Vec3(x, oldPosition.y(), z));
+            }
+        }
         // Set the scene and camera
         renderer.setScene(videoScene);
         renderer.setCamera(videoCamera);
         renderer.setSamplesPP(3);
 
         // Render the scene and write it to a file
-        std::string filename = "outputs/frame" + std::to_string(i) + ".ppm";
+        std::string filename = "outputs/frame" + std::to_string(i+100) + ".ppm";
         ImageWriter::writePPM(filename, renderer.RenderScene(), camera.getWidth(), camera.getHeight());
     }
-
-    /*
-    renderer.parseRenderWrite("experiments.json", PHONG, 2, 8);
-    renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 4);
-    renderer.parseRenderWrite("scene.json", PHONG, 1, 8);
-    renderer.parseRenderWrite("simple_phong.json", PHONG, 1, 4);
-    renderer.parseRenderWrite("mirror_image.json", PHONG, 2, 4);
-
     */
     return 0;
 }

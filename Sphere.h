@@ -15,6 +15,9 @@ public:
 
     void setUVCoordinates(const Vec3& intersectionPoint, Hit& hit) const;
 
+    void setCenter(const Vec3& center) {
+        center_ = center;
+    }
 
     // Method for ray-sphere intersection testing
     virtual bool intersect(const Ray& ray, Hit& hit, Shape* ignoreShape) const override;

@@ -181,9 +181,6 @@ void parseRender(const std::string& filename, RayTracer& renderer) {
                 Vec3(shape["material"]["specularcolor"][0], shape["material"]["specularcolor"][1], shape["material"]["specularcolor"][2]),
                 shape["material"]["isreflective"], shape["material"]["reflectivity"],
                 shape["material"]["isrefractive"], shape["material"]["refractiveindex"]);
-
-            mat.setTexture(new checkered(0.3, Vec3(0.1, 0.1, 0.1), Vec3(1, 0.8, 1)));
-
         } else {
             mat = Material();
             //no material
