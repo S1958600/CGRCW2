@@ -38,6 +38,8 @@ public:
     void setMaxDepth(int maxDepth);
     void setBVH(BVH bvh);
 
+    Scene getScene() const;
+
     Vec3* RenderScene();
     Vec3 color(const Ray& r, int depth, Shape* ignoreShape);
     void parseRenderWrite(const std::string& filename, RenderMode renderMode, int samplesPP, int maxDepth);

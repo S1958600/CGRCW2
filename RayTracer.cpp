@@ -50,6 +50,10 @@ void RayTracer::setBVH(BVH bvh) {
     this->bvh = bvh;
 }
 
+Scene RayTracer::getScene() const {
+    return scene;
+}
+
 
 Vec3* RayTracer::RenderScene() {
     camera.setSamples(samplesPP);
@@ -268,8 +272,12 @@ int main() {
     //renderer.parseRenderWrite("binary_primitves.json", BINARY, 1, 8);
     //renderer.parseRenderWrite("scene.json", BINARY, 1, 8);
 
+
+
+    //code for using the raytracer without json files
     //much easier to edit a scene in code than in json
     
+    /*
     Camera camera = Camera(1200, 800, Vec3(0, 0, 0), Vec3(0, 0, 1), Vec3(0, 1, 0), 60, 1);
 
     //materials
@@ -328,6 +336,7 @@ int main() {
     renderer.setSamplesPP(4);
 
     ImageWriter::writePPM("demo.ppm", renderer.RenderScene(), camera.getWidth(), camera.getHeight());
+    */
 
     /*
     //scene for video

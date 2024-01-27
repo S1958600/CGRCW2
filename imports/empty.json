@@ -1,0 +1,23 @@
+{
+    "nbounces":8, 
+    "rendermode":"binary",
+    "camera":
+        { 
+            "type":"pinhole", 
+            "width":1200, 
+            "height":800,
+            "position":[0.0, 0.75, -0.25],
+            "lookAt":[0.0, 0.35, 1.0],
+            "upVector":[0.0, 1.0, 0.0],
+            "fov":45.0,
+            "exposure":0.1
+        },
+    "scene":
+        { 
+            "backgroundcolor": [0.25, 0.25, 0.25], 
+            "lightsources":[ 
+            ], 
+            "shapes":[ 
+            ] 
+        } 
+}
